@@ -1,5 +1,4 @@
 import mongoose from "mongoose";
-import { getEnvironment } from "./env";
 
 export interface MongodbConnectOption {
   host: string;
@@ -37,11 +36,15 @@ export function createConnectionURI(
 
 /**
  * 连接mongodb数据库
- * @param option
+ * @param option 连接参数
+ * @param debug 是否开启调试
  */
-export async function connectMongodb(option: Partial<MongodbConnectOption>) {
+export async function connectMongodb(
+  option: Partial<MongodbConnectOption>,
+  debug = false
+) {
   // 开发环境开启mongoose调试
-  if (getEnvironment() === "development") {
+  if (debug) {
     mongoose.set("debug", true);
   }
   const uri = createConnectionURI(option);
