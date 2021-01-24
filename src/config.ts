@@ -11,6 +11,10 @@ export interface ConfigOption {
   httpPort: number | string;
   // 控制器根目录
   controllerRootDir: string;
+  // 默认控制器文件路径
+  defaultControllerPath: string;
+  // 默认动作名
+  defaultActionName: string;
   // mongodb数据库链接选项
   mongodbConnectOption?: MongodbConnectOption;
 }
