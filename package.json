@@ -2,20 +2,22 @@
   "name": "js-controller",
   "version": "1.0.0",
   "description": "Handle http request with controller",
-  "main": "./dist/app.js",
-  "types": "./dist/app.d.ts",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
   "dependencies": {
     "koa": "^2.13.1",
+    "koa-body": "^4.2.0",
     "mongoose": "^5.11.13"
   },
   "devDependencies": {
+    "@types/koa": "^2.11.6",
     "@types/node": "^14.14.22",
     "nodemon": "^2.0.7",
     "ts-node": "^9.1.1",
     "typescript": "^4.1.3"
   },
   "scripts": {
-    "dev": "nodemon -x ts-node -e ts -w ./index.ts -w ./src index.ts",
+    "dev": "nodemon -x ts-node -e ts -w ./test.ts -w ./src ./test.ts",
     "build": "rm -rfv ./dist && tsc --pretty"
   },
   "repository": {
