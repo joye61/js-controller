@@ -24,7 +24,7 @@ export interface ConfigOption {
 // 配置数据
 export let configData: Partial<ConfigOption> = {
   httpHost: "127.0.0.1",
-  httpPort: "9000",
+  httpPort: 9000,
   postBodyLimit: 1024 * 1024 * 8,
   onBeforeActionHook: "onBeforeActionCall",
   onAfterActionHook: "onAfterActionCall",

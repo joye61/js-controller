@@ -48,4 +48,7 @@ export async function runApp(config: Partial<ConfigOption>) {
       sendHttpResponse(ctx, { code: -1, message: error.message });
     }
   });
+
+  // 启动监听
+  koa.listen(getConfig("httpPort"), getConfig("httpHost"));
 }
