@@ -54,8 +54,24 @@ export async function route(ctx: Koa.Context) {
     throw new Error(RouteError.ActionNotExist);
   }
 
+  // 是否有前置动作钩子
+  const onBeforeActionHook: string = getConfig("onBeforeActionHook")!;
+  if (typeof controller[onBeforeActionHook] === "function") {
+    const beforeHookResult = await controller[onBeforeActionHook]();
+    // 当前置钩子返回prevent关键字的时候，阻止继续执行
+    if (beforeHookResult === "prevent") {
+      return;
+    }
+  }
+
   // 调用动作
   await controller[actionName]();
+
+  // 后置钩子
+  const onAfterActionHook: string = getConfig("onAfterActionHook")!;
+  if (typeof controller[onAfterActionHook] === "function") {
+    await controller[onAfterActionHook]();
+  }
 
   // 如果服务器没有任何响应，提示错误
   if (!ctx.body) {

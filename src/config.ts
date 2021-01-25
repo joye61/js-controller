@@ -1,4 +1,5 @@
 import { MongodbConnectOption } from "./db";
+import path from "path";
 
 export interface ConfigOption {
   // 应用程序名字
@@ -24,7 +25,7 @@ export interface ConfigOption {
 // 配置数据
 export let configData: Partial<ConfigOption> = {
   httpHost: "127.0.0.1",
-  httpPort: "9000",
+  httpPort: 9000,
   postBodyLimit: 1024 * 1024 * 8,
   onBeforeActionHook: "onBeforeActionCall",
   onAfterActionHook: "onAfterActionCall",
@@ -34,8 +35,36 @@ export let configData: Partial<ConfigOption> = {
  * 加载配置数据
  * @param config
  */
-export function loadConfig(config: Partial<ConfigOption>) {
-  configData = { ...configData, ...config };
+export async function loadConfig(configRootDir?: string) {
+  // 如果配置文件根目录没有指定，则默认为当前执行目录下的config目录
+  if(!configRootDir) {
+    configRootDir = path.resolve(process.cwd(), "./config");
+  }
+
+  // 加载主配置
+  const mainConfigFile = path.resolve(configRootDir, "./main.js");
+  const mainConfig: Partial<ConfigOption> = (await import(mainConfigFile))
+    .default;
+
+  // 先将主配置合并到配置中
+  configData = { ...configData, ...mainConfig };
+
+  // 如果存在环境相关的配置，则将配置合并到配置中
+  if (process.env.NODE_ENV) {
+    const envConfigFile = path.resolve(
+      configRootDir,
+      `./${process.env.NODE_ENV}.js`
+    );
+    try {
+      const envConfig = (await import(envConfigFile)).default;
+      configData = { ...configData, ...envConfig };
+    } catch (error) {}
+  }
+
+  // 必须制定控制器根目录
+  if (!configData.controllerRootDir) {
+    throw new Error(`The controller root directory must be developed`);
+  }
 }
 
 /**

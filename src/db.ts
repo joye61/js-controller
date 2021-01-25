@@ -1,12 +1,18 @@
 import mongoose from "mongoose";
 
 export interface MongodbConnectOption {
-  host: string;
-  port: string;
-  database: string;
-  user: string;
-  password: string;
-  debug: boolean;
+  // 主机名
+  host?: string;
+  // 端口号
+  port?: string | number;
+  // 默认连接的数据库
+  database?: string;
+  // 用户名
+  user?: string;
+  // 密码
+  password?: string;
+  // 是否开启调试
+  debug?: boolean;
 }
 
 /**
@@ -14,23 +20,23 @@ export interface MongodbConnectOption {
  * 根据连接参数创建连接mongodb的uri
  * @param option MongodbOption
  */
-export function createConnectionURI(
-  option: Partial<MongodbConnectOption>
-): string {
-  let uri = "mongodb://";
-  if (option.user) {
-    uri += `${option.user}:${option.password ?? ""}@`;
+export function createConnectionURI(option?: MongodbConnectOption): string {
+  let config: MongodbConnectOption = {
+    host: "127.0.0.1",
+    port: 27017,
+  };
+  if (typeof option === "object") {
+    config = { ...config, ...option };
   }
 
-  if (!option.host) {
-    throw new Error(`The host must be specified`);
+  let uri = "mongodb://";
+  if (config.user) {
+    uri += `${config.user}:${config.password ?? ""}@`;
   }
-  uri += option.host;
-  if (option.port) {
-    uri += `:${option.port}`;
-  }
-  if (option.database) {
-    uri += `/${option.database}`;
+
+  uri += `${config.host}:${config.port}`;
+  if (config.database) {
+    uri += `/${config.database}`;
   }
   return uri;
 }
@@ -40,9 +46,9 @@ export function createConnectionURI(
  * @param option 连接参数
  * @param debug 是否开启调试
  */
-export async function connectMongodb(option: Partial<MongodbConnectOption>) {
+export async function connectMongodb(option?: MongodbConnectOption) {
   // 根据条件判断是否开发环境开启mongoose调试
-  if (!!option.debug) {
+  if (!!option?.debug) {
     mongoose.set("debug", true);
   }
   const uri = createConnectionURI(option);

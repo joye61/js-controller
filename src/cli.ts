@@ -1,4 +1,4 @@
-import { ConfigOption, getConfig, loadConfig } from "./config";
+import { getConfig, loadConfig } from "./config";
 import { connectMongodb, disconnectMongodb } from "./db";
 
 /**
@@ -7,24 +7,11 @@ import { connectMongodb, disconnectMongodb } from "./db";
  * @param fn 脚本逻辑在此
  */
 export async function runWithinCli(
-  config: Partial<ConfigOption>,
-  fn: () => Promise<void>
+  fn?: () => Promise<void>,
+  configRootDir?: string
 ): Promise<void> {
-  // 环境变量初始化，确保环境变量存在
-  const env = process.env.NODE_ENV;
-  const lastArg = process.argv[process.argv.length - 1];
-  const envArr: Array<string | undefined> = ["development", "production"];
-  if (!env && !envArr.includes(env)) {
-    process.env.NODE_ENV = "development";
-  }
-  if (lastArg === "--dev") {
-    process.env.NODE_ENV = "development";
-  } else if (lastArg === "--prod") {
-    process.env.NODE_ENV = "production";
-  }
-
-  // 加载配置
-  loadConfig(config);
+  // 加载配置，初始化执行一次
+  loadConfig(configRootDir);
 
   // 如果存在mongodb连接信息，则尝试连接数据库
   const mongodbUriInfo = getConfig("mongodbConnectOption");
@@ -33,7 +20,7 @@ export async function runWithinCli(
   }
 
   // 执行脚本逻辑
-  await fn();
+  await fn?.();
 
   // 关闭连接
   if (mongodbUriInfo) {

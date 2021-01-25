@@ -1,6 +1,6 @@
 import Koa from "koa";
 import KoaBody from "koa-body";
-import { ConfigOption, getConfig, loadConfig } from "./config";
+import { getConfig, loadConfig } from "./config";
 import { connectMongodb } from "./db";
 import { route } from "./router";
 import { sendHttpResponse } from "./utils";
@@ -9,9 +9,9 @@ import { sendHttpResponse } from "./utils";
  * 启动并运行App
  * @param config
  */
-export async function runApp(config: Partial<ConfigOption>) {
+export async function runApp(configRootDir?: string) {
   // 初始化配置信息，只执行一次
-  loadConfig(config);
+  loadConfig(configRootDir);
 
   // 如果存在mongodb连接信息，则尝试连接数据库
   const mongodbUriInfo = getConfig("mongodbConnectOption");
