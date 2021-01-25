@@ -46,7 +46,9 @@ export function createConnectionURI(option?: MongodbConnectOption): string {
  * @param option 连接参数
  * @param debug 是否开启调试
  */
-export async function connectMongodb(option?: MongodbConnectOption) {
+export async function connectMongodb(
+  option?: MongodbConnectOption
+): Promise<void> {
   // 根据条件判断是否开发环境开启mongoose调试
   if (!!option?.debug) {
     mongoose.set("debug", true);
@@ -62,7 +64,7 @@ export async function connectMongodb(option?: MongodbConnectOption) {
   });
 
   // 确认数据库连接正常
-  return new Promise((resolve, reject) => {
+  await new Promise((resolve, reject) => {
     const db = mongoose.connection;
     db.on("error", () => {
       db.close();
@@ -85,9 +87,9 @@ export async function disconnectMongodb() {
  * @param definition
  * @param option
  */
-export async function createMongooseModel<T>(
+export function createMongooseModel(
   name: string,
-  definition: mongoose.SchemaDefinition<T>,
+  definition: mongoose.SchemaDefinition,
   option?: mongoose.SchemaOptions
 ) {
   let schemaOption: mongoose.SchemaOptions = {
@@ -97,6 +99,5 @@ export async function createMongooseModel<T>(
     schemaOption = { ...schemaOption, ...option };
   }
   const schema = new mongoose.Schema(definition, schemaOption);
-  const model = mongoose.model(name, schema, name);
-  return model;
+  return mongoose.model(name, schema, name);
 }

@@ -1,24 +1,26 @@
 {
   "name": "js-controller",
-  "version": "1.0.0",
+  "version": "0.0.1",
   "description": "Handle http request with controller",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "dependencies": {
     "koa": "^2.13.1",
     "koa-body": "^4.2.0",
-    "mongoose": "^5.11.13"
+    "mongoose": "^5.11.13",
+    "sprintf-js": "^1.1.2"
   },
   "devDependencies": {
     "@types/koa": "^2.11.6",
     "@types/node": "^14.14.22",
+    "@types/sprintf-js": "^1.1.2",
     "nodemon": "^2.0.7",
     "typescript": "^4.1.3"
   },
   "scripts": {
-    "ts": "tsc -w --pretty -p ./tsconfig.json",
-    "dev": "nodemon -e js,json -w ./dist -w ./test ./test/index.js",
-    "build": "rm -rfv ./dist && tsc --pretty ./tsconfig.json"
+    "ts": "tsc -w --pretty",
+    "dev": "nodemon --config ./nodemon.json ./test/index.js",
+    "build": "rm -rfv ./dist && tsc --pretty"
   },
   "repository": {
     "type": "git",

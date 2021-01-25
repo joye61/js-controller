@@ -1,7 +1,7 @@
 import Koa from "koa";
 import { sendHttpResponse } from "./utils";
 
-class Base {
+export class Base {
   // GET请求参数
   protected paramsGet: any;
   // POST请求参数
@@ -54,5 +54,3 @@ class Base {
     sendHttpResponse(this.ctx, { data, code, message });
   }
 }
-
-module.exports = { Base };

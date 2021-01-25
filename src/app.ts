@@ -11,7 +11,7 @@ import { sendHttpResponse } from "./utils";
  */
 export async function runApp(configRootDir?: string) {
   // 初始化配置信息，只执行一次
-  loadConfig(configRootDir);
+  await loadConfig(configRootDir);
 
   // 如果存在mongodb连接信息，则尝试连接数据库
   const mongodbUriInfo = getConfig("mongodbConnectOption");
@@ -23,9 +23,17 @@ export async function runApp(configRootDir?: string) {
   const koa = new Koa();
   koa.proxy = true;
 
+  // 发送响应
+  const sendErrorResponse = (ctx: Koa.Context, error: Error) => {
+    if (getConfig("printError")) {
+      console.error(error);
+    }
+    sendHttpResponse(ctx, { code: 500, message: "System Exception" });
+  };
+
   // 监听系统错误
   koa.on("error", (error, ctx) => {
-    sendHttpResponse(ctx, { code: -1, message: error.message });
+    sendErrorResponse(ctx, error);
   });
 
   // 解析POST请求
@@ -42,11 +50,7 @@ export async function runApp(configRootDir?: string) {
 
   // 处理请求
   koa.use(async (ctx) => {
-    try {
-      await route(ctx);
-    } catch (error) {
-      sendHttpResponse(ctx, { code: -1, message: error.message });
-    }
+    await route(ctx);
   });
 
   // 启动监听

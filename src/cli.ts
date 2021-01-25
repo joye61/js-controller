@@ -11,7 +11,7 @@ export async function runWithinCli(
   configRootDir?: string
 ): Promise<void> {
   // 加载配置，初始化执行一次
-  loadConfig(configRootDir);
+  await loadConfig(configRootDir);
 
   // 如果存在mongodb连接信息，则尝试连接数据库
   const mongodbUriInfo = getConfig("mongodbConnectOption");

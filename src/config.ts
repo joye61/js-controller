@@ -6,6 +6,8 @@ export interface ConfigOption {
   appName: string;
   // 应用程序版本
   appVersion: string;
+  // 打印错误
+  printError: boolean;
   // 监听本地地址
   httpHost: string;
   // 监听的端口
@@ -26,6 +28,7 @@ export interface ConfigOption {
 export let configData: Partial<ConfigOption> = {
   httpHost: "127.0.0.1",
   httpPort: 9000,
+  printError: false,
   postBodyLimit: 1024 * 1024 * 8,
   onBeforeActionHook: "onBeforeActionCall",
   onAfterActionHook: "onAfterActionCall",
@@ -37,7 +40,7 @@ export let configData: Partial<ConfigOption> = {
  */
 export async function loadConfig(configRootDir?: string) {
   // 如果配置文件根目录没有指定，则默认为当前执行目录下的config目录
-  if(!configRootDir) {
+  if (!configRootDir) {
     configRootDir = path.resolve(process.cwd(), "./config");
   }
 
