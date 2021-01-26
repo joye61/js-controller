@@ -61,10 +61,6 @@ interface MongodbConnectOption {
 }
 
 interface ConfigOption {
-  // Application name
-  appName?: string;
-  // Application version
-  appVersion?: string;
   // Listen to the local address
   httpHost?: string;
   // The port to listen on

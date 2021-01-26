@@ -2,29 +2,25 @@ import { MongodbConnectOption } from "./db";
 import path from "path";
 
 export interface ConfigOption {
-  // 应用程序名字
-  appName: string;
-  // 应用程序版本
-  appVersion: string;
-  // 开启调试
+  // If or not debugging is enabled, this mode will output errors and other information
   debug: boolean;
-  // 监听本地地址
-  httpHost: string;
-  // 监听的端口
-  httpPort: number | string;
-  // POST请求的请求体限制（字节）
-  postBodyLimit: number;
-  // 控制器根目录
+  // Listen to the local address
+  httpHost?: string;
+  // The port to listen on
+  httpPort?: number | string;
+  // POST request body limit (bytes)
+  postBodyLimit?: number;
+  // Controller root directory
   controllerRootDir: string;
-  // 调用动作之前触发的钩子名字
-  onBeforeActionHook: string;
-  // 调用动作之后触发的钩子名字
-  onAfterActionHook: string;
-  // mongodb数据库链接选项
+  // name of the hook that is triggered before the action is called
+  onBeforeActionHook?: string;
+  // The name of the hook that fires after the action is invoked
+  onAfterActionHook?: string;
+  // mongodb database linking option
   mongodbConnectOption?: MongodbConnectOption;
 }
 
-// 配置数据
+// An object that holds configuration data and contains the default configuration
 export let configData: Partial<ConfigOption> = {
   httpHost: "127.0.0.1",
   httpPort: 9000,
@@ -35,24 +31,26 @@ export let configData: Partial<ConfigOption> = {
 };
 
 /**
- * 加载配置数据
+ * Load configuration data, execute only once
  * @param config
  */
 export async function loadConfig(configRootDir?: string) {
-  // 如果配置文件根目录没有指定，则默认为当前执行目录下的config目录
+  // If the root directory of the configuration file is not specified, 
+  // the default is the config directory in the current execution directory
   if (!configRootDir) {
     configRootDir = path.resolve(process.cwd(), "./config");
   }
 
-  // 加载主配置
+  // Load main configuration
   const mainConfigFile = path.resolve(configRootDir, "./main.js");
   const mainConfig: Partial<ConfigOption> = (await import(mainConfigFile))
     .default;
 
-  // 先将主配置合并到配置中
+  // First merge the master configuration into the configuration
   configData = { ...configData, ...mainConfig };
 
-  // 如果存在环境相关的配置，则将配置合并到配置中
+  // If environment-related configuration exists, 
+  // merge the configuration into the configuration
   if (process.env.NODE_ENV) {
     const envConfigFile = path.resolve(
       configRootDir,
@@ -64,14 +62,14 @@ export async function loadConfig(configRootDir?: string) {
     } catch (error) {}
   }
 
-  // 必须制定控制器根目录
+  // The controller root directory must be specified
   if (!configData.controllerRootDir) {
     throw new Error(`The controller root directory must be developed`);
   }
 }
 
 /**
- * 根据键获取配置值
+ * Get configuration values based on keys
  * @param key
  * @param value
  */
@@ -86,7 +84,7 @@ export function getConfig<T = undefined>(
 }
 
 /**
- * 设置配置项
+ * Set configuration items
  * @param key
  * @param value
  */

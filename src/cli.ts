@@ -1,32 +1,48 @@
 import { getConfig, loadConfig } from "./config";
 import { connectMongodb, disconnectMongodb } from "./db";
+import yargs from "yargs/yargs";
+import chalk from "chalk";
 
 /**
- * cli环境执行脚本逻辑
- * @param config 配置
- * @param fn 脚本逻辑在此
+ * cli environment execution script logic
+ * @param configRootDir Configuring the root directory
+ * @param fn Script logic functions
  */
 export async function runWithinCli(
   fn?: () => Promise<void>,
   configRootDir?: string
 ): Promise<void> {
-  // 加载配置，初始化执行一次
+  // Try to assign values to environment variables
+  const args: any = yargs(process.argv).argv;
+  if (!process.env.NODE_ENV && typeof args.env === "string") {
+    process.env.NODE_ENV = args.env;
+  }
+
+  if (!process.env.NODE_ENV) {
+    throw new Error(
+      `The environment variable ${chalk.red(
+        "process.env.NODE_ENV"
+      )} must be set`
+    );
+  }
+
+  // Load configuration, initialize and execute once
   await loadConfig(configRootDir);
 
-  // 如果存在mongodb连接信息，则尝试连接数据库
+  // If mongodb connection information exists, try to connect to the database
   const mongodbUriInfo = getConfig("mongodbConnectOption");
   if (mongodbUriInfo) {
     await connectMongodb(mongodbUriInfo);
   }
 
-  // 执行脚本逻辑
+  // Execute script logic
   await fn?.();
 
-  // 关闭连接
+  // Close the connection
   if (mongodbUriInfo) {
     await disconnectMongodb();
   }
 
-  // 关闭进程
+  // Close process
   process.exit();
 }

@@ -11,14 +11,14 @@ import {
 import chalk from "chalk";
 
 /**
- * 启动并运行App
+ * Start and run the App
  * @param config
  */
 export async function runApp(configRootDir?: string) {
-  // 初始化配置信息，只执行一次
+  // Initialize the configuration information and execute it only once
   await loadConfig(configRootDir);
 
-  // 如果存在mongodb连接信息，则尝试连接数据库
+  // If mongodb connection information exists, try to connect to the database
   const mongodbUriInfo = getConfig("mongodbConnectOption");
   if (mongodbUriInfo) {
     await connectMongodb(mongodbUriInfo);
@@ -29,7 +29,7 @@ export async function runApp(configRootDir?: string) {
   koa.proxy = true;
 
   /**
-   * 发送错误响应
+   * Sending an error response
    * @param ctx
    * @param error
    */
@@ -47,26 +47,26 @@ export async function runApp(configRootDir?: string) {
     sendHttpResponse(ctx, result);
   };
 
-  // 监听系统错误
+  // Listening for system errors
   koa.on("error", (error, ctx) => {
     sendErrorResponse(ctx, error);
   });
 
-  // 解析POST请求
+  // Parsing POST requests
   const postBodyLimit = getConfig("postBodyLimit");
   koa.use(
     KoaBody({
       jsonLimit: postBodyLimit,
       formLimit: postBodyLimit,
       textLimit: postBodyLimit,
-      // 开启文件上传解析
+      // Enabling file upload parsing
       multipart: true,
     })
   );
 
-  // 处理请求
+  // Processing Requests
   koa.use(async (ctx) => {
-    // debug模式输出http request相关信息
+    // debug mode output http request related information
     runWithDebugCheck(() => {
       const method = ctx.method.toUpperCase();
       console.log(ctx.href, chalk.cyan(method));
@@ -75,11 +75,11 @@ export async function runApp(configRootDir?: string) {
         console.log("Body", ctx.request.body);
       }
     });
-    // 路由请求
+    // Routing requests
     await route(ctx);
   });
 
-  // 启动监听
+  // Start Service Listening
   const port = getConfig<number | number>("httpPort");
   const host = getConfig<string>("httpHost");
   runWithDebugCheck(() => {

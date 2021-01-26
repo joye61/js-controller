@@ -1,6 +1,6 @@
 export { runApp } from "./app";
 export { createMongooseModel } from "./db";
-export { getConfig } from "./config";
+export { getConfig, setConfig } from "./config";
 export { runWithinCli } from "./cli";
-export { sendHttpResponse } from "./utils";
+export { sendHttpResponse, runWithDebugCheck } from "./utils";
 export { Controller } from "./controller";

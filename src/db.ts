@@ -3,23 +3,23 @@ import { runWithDebugCheck } from "./utils";
 import chalk from "chalk";
 
 export interface MongodbConnectOption {
-  // 主机名
+  // Host Name
   host?: string;
-  // 端口号
+  // Port number
   port?: string | number;
-  // 默认连接的数据库
+  // The default database to connect to
   database?: string;
-  // 用户名
+  // username
   user?: string;
-  // 密码
+  // password
   password?: string;
-  // 是否开启调试
+  // 是Whether to turn on debugging
   debug?: boolean;
 }
 
 /**
  * ref: https://docs.mongodb.com/manual/reference/connection-string/
- * 根据连接参数创建连接mongodb的uri
+ * Create a uri to connect to mongodb based on the connection parameters
  * @param option MongodbOption
  */
 export function createConnectionURI(option?: MongodbConnectOption): string {
@@ -45,14 +45,14 @@ export function createConnectionURI(option?: MongodbConnectOption): string {
 }
 
 /**
- * 连接mongodb数据库
- * @param option 连接参数
- * @param debug 是否开启调试
+ * Connecting to a mongodb database
+ * @param option Connection parameters
+ * @param debug Whether to turn on debugging
  */
 export async function connectMongodb(
   option?: MongodbConnectOption
 ): Promise<void> {
-  // 根据条件判断是否开发环境开启mongoose调试
+  // Determine if mongoose debugging is enabled based on conditions
   if (!!option?.debug) {
     mongoose.set("debug", true);
   }
@@ -66,7 +66,7 @@ export async function connectMongodb(
     useFindAndModify: false,
   });
 
-  // 确认数据库连接正常
+  // Verify that the database connection is working
   await new Promise((resolve, reject) => {
     const db = mongoose.connection;
     db.on("error", () => {
@@ -77,20 +77,20 @@ export async function connectMongodb(
   });
 
   runWithDebugCheck(() => {
-    // 打印成功连接数据库消息
+    // Print the successful database connection message
     console.log(`Connected to mongodb database -> ` + chalk.blue(uri));
   });
 }
 
 /**
- * 断开mongodb数据库的连接
+ * Disconnecting the mongodb database
  */
 export async function disconnectMongodb() {
   await mongoose.connection.close();
 }
 
 /**
- * 创建一个mongoose模型
+ * Create a mongoose model
  * @param name
  * @param definition
  * @param option

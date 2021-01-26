@@ -126,13 +126,14 @@ export async function route(ctx: Koa.Context) {
   }
 
   // 获取真实动作名
+  const rawActionName = actionName;
   actionName = actionNameMap[controllerFile].get(actionName.toLowerCase());
 
   // 判断动作是否存在
   if (!actionName) {
     return sendErrorResponse(
       ctx,
-      sprintf(RouteError.ActionNotExist, actionName)
+      sprintf(RouteError.ActionNotExist, rawActionName)
     );
   }
 

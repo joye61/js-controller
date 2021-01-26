@@ -2,11 +2,11 @@ import Koa from "koa";
 import { sendHttpResponse } from "./utils";
 
 export class Controller {
-  // GET请求参数
+  // GET request parameters
   protected paramsGet: any;
-  // POST请求参数
+  // POST request parameters
   protected paramsPost: any;
-  // GET和POST合并的参数
+  // Parameters for GET and POST merging
   protected params: any;
 
   constructor(protected ctx: Koa.Context) {
@@ -18,7 +18,7 @@ export class Controller {
   }
 
   /**
-   * 获取参数，包含GET和POST请求
+   * Get parameters, including GET and POST requests
    * @param {*} name
    */
   getParam(name: string) {
@@ -27,7 +27,7 @@ export class Controller {
   }
 
   /**
-   * 获取GET请求参数
+   * Get GET request parameters
    * @param {*} name
    */
   getGetParam(name: string) {
@@ -36,7 +36,7 @@ export class Controller {
   }
 
   /**
-   * 获取POST请求参数
+   * Get POST request parameters
    * @param {*} name
    */
   getPostParam(name: string) {
@@ -45,7 +45,7 @@ export class Controller {
   }
 
   /**
-   * JSON输出
+   * JSON output
    * @param {*} data
    * @param {*} code
    * @param {*} message
