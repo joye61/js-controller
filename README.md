@@ -20,7 +20,7 @@ runApp()
 runApp("path/to/configRootDir")
 ```
 
-> For a complete example, please refer to the project under [test](. /test) directory
+> For a complete example, please refer to the project under [test](./test) directory
 
 
 ## Configuration file conventions
