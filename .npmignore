@@ -6,4 +6,5 @@ node_modules/
 /.npmignore
 /.gitignore
 /.vscode
+/nodemon.json
 .DS_Store

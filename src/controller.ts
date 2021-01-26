@@ -1,7 +1,7 @@
 import Koa from "koa";
 import { sendHttpResponse } from "./utils";
 
-export class Base {
+export class Controller {
   // GET请求参数
   protected paramsGet: any;
   // POST请求参数

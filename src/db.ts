@@ -1,4 +1,6 @@
 import mongoose from "mongoose";
+import { runWithDebugCheck } from "./utils";
+import chalk from "chalk";
 
 export interface MongodbConnectOption {
   // 主机名
@@ -24,6 +26,7 @@ export function createConnectionURI(option?: MongodbConnectOption): string {
   let config: MongodbConnectOption = {
     host: "127.0.0.1",
     port: 27017,
+    debug: false,
   };
   if (typeof option === "object") {
     config = { ...config, ...option };
@@ -68,9 +71,14 @@ export async function connectMongodb(
     const db = mongoose.connection;
     db.on("error", () => {
       db.close();
-      reject(`Mongodb connection with '${uri}' triggered an error`);
+      reject(`An error occurred while connecting to the database via '${uri}'`);
     });
     db.once("open", resolve);
+  });
+
+  runWithDebugCheck(() => {
+    // 打印成功连接数据库消息
+    console.log(`Connected to mongodb database -> ` + chalk.blue(uri));
   });
 }
 
@@ -99,5 +107,7 @@ export function createMongooseModel(
     schemaOption = { ...schemaOption, ...option };
   }
   const schema = new mongoose.Schema(definition, schemaOption);
-  return mongoose.model(name, schema, name);
+  const model = mongoose.model(name, schema, name);
+
+  return { schema, model };
 }

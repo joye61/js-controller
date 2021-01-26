@@ -6,8 +6,8 @@ export interface ConfigOption {
   appName: string;
   // 应用程序版本
   appVersion: string;
-  // 打印错误
-  printError: boolean;
+  // 开启调试
+  debug: boolean;
   // 监听本地地址
   httpHost: string;
   // 监听的端口
@@ -28,7 +28,7 @@ export interface ConfigOption {
 export let configData: Partial<ConfigOption> = {
   httpHost: "127.0.0.1",
   httpPort: 9000,
-  printError: false,
+  debug: false,
   postBodyLimit: 1024 * 1024 * 8,
   onBeforeActionHook: "onBeforeActionCall",
   onAfterActionHook: "onAfterActionCall",

@@ -3,7 +3,12 @@ import KoaBody from "koa-body";
 import { getConfig, loadConfig } from "./config";
 import { connectMongodb } from "./db";
 import { route } from "./router";
-import { sendHttpResponse } from "./utils";
+import {
+  JSONMessageObject,
+  runWithDebugCheck,
+  sendHttpResponse,
+} from "./utils";
+import chalk from "chalk";
 
 /**
  * 启动并运行App
@@ -23,12 +28,23 @@ export async function runApp(configRootDir?: string) {
   const koa = new Koa();
   koa.proxy = true;
 
-  // 发送响应
+  /**
+   * 发送错误响应
+   * @param ctx
+   * @param error
+   */
   const sendErrorResponse = (ctx: Koa.Context, error: Error) => {
-    if (getConfig("printError")) {
+    const result: JSONMessageObject<string> = {
+      code: 500,
+      message: "Internal server error",
+    };
+
+    runWithDebugCheck(() => {
       console.error(error);
-    }
-    sendHttpResponse(ctx, { code: 500, message: "System Exception" });
+      result.data = error.message;
+    });
+
+    sendHttpResponse(ctx, result);
   };
 
   // 监听系统错误
@@ -50,9 +66,25 @@ export async function runApp(configRootDir?: string) {
 
   // 处理请求
   koa.use(async (ctx) => {
+    // debug模式输出http request相关信息
+    runWithDebugCheck(() => {
+      const method = ctx.method.toUpperCase();
+      console.log(ctx.href, chalk.cyan(method));
+      console.log("Headers", ctx.headers);
+      if (method === "POST") {
+        console.log("Body", ctx.request.body);
+      }
+    });
+    // 路由请求
     await route(ctx);
   });
 
   // 启动监听
-  koa.listen(getConfig("httpPort"), getConfig("httpHost"));
+  const port = getConfig<number | number>("httpPort");
+  const host = getConfig<string>("httpHost");
+  runWithDebugCheck(() => {
+    console.log(`Start Http Service -> ` + chalk.blue(`${host}:${port}`));
+  });
+
+  koa.listen(port, host);
 }

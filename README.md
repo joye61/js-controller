@@ -2,11 +2,11 @@
 
 ## 配置文件约定
 
-- 启动应用程序时，需要传递参数指定配置文件根目录`runApp("path/to/configRoot")`
+- 启动应用程序时，可以指定配置文件根目录`runApp("path/to/configRoot")`，如果未指定，则默认为项目根目录下`config`文件夹
 - 假设配置文件根目录为`config`，必须存在`config/main.js` 代表通用配置文件
 - 假设配置文件根目录为`config`，必须存在`config/[process.env.NODE_ENV].js`代表环境相关的配置文件
 
-假设配置文件根目录为`config`，如以下例子：
+假设配置文件根目录为`config`，那么：
 
 ```
 ┣━config
@@ -44,6 +44,8 @@ interface ConfigOption {
   httpHost?: string;
   // 监听的端口
   httpPort?: number | string;
+  // 是否开启调试，这个模式会输出错误等信息
+  debug: boolean;
   // POST请求的请求体限制（字节）
   postBodyLimit?: number;
   // 控制器根目录
@@ -61,6 +63,10 @@ interface ConfigOption {
 
 ## 路由查找规则
 
+```
+/path/to/控制器/动作
+```
+
 如：`/module/article/search`
 
 路径的最后一段`search`会被当成动作名，前面的部分`/module/article`会被当做控制器文件的路径，最终将解析得到：
@@ -69,7 +75,14 @@ interface ConfigOption {
 - 动作名字: `search`
 
 
-控制器文件名和动作名都是不区分大小写的，`article.js` 可以为 `aRTicle.js`，`search`可以为`Search`。除此之外，路径其余的部分**对大小写敏感**，如`module`就不能为`Module`
+控制器文件名和动作名都是不区分大小写的：
+
+```
+/module/ArtIcle/search  合法，控制器不分大小写
+/module/ArtIcle/seArch  合法，控制器和动作不分大小写
+/module/article/SeaRch  合法，动作不分大小写
+/Module/article/SeaRch  不合法，只有控制器和动作不分大小写
+```
 
 ## 控制器约定
 
@@ -82,6 +95,18 @@ export default class Article {
     // TODO
   }
 }
+```
+
+对应的路径为 `/path/to/article/search`
+
+
+# 开发
+
+克隆项目，同时运行，可开启开发测试，`test`目录为测试代码
+
+```
+npm run ts
+npm run dev
 ```
 
 

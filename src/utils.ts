@@ -1,4 +1,5 @@
 import { Context } from "koa";
+import { getConfig } from "./config";
 
 export interface JSONMessageObject<T = null> {
   data?: T;
@@ -26,4 +27,14 @@ export function sendHttpResponse<T>(
   ctx.status = 200;
   ctx.type = "application/json; charset=UTF-8";
   ctx.body = JSON.stringify({ ...defaultMessage, ...message });
+}
+
+/**
+ * debug模式开启时，执行函数逻辑
+ * @param fn 
+ */
+export function runWithDebugCheck(fn?: () => void) {
+  if (!!getConfig("debug")) {
+    fn?.();
+  }
 }

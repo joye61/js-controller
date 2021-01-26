@@ -1,7 +1,7 @@
 const mongoose = require("mongoose");
 const { createMongooseModel } = require("../../dist");
 
-module.exports = createMongooseModel("articlemodels", {
+const { model } = createMongooseModel("articlemodels", {
   // 标题
   title: String,
   // 内容
@@ -21,3 +21,5 @@ module.exports = createMongooseModel("articlemodels", {
     index: true,
   },
 });
+
+module.exports = model;

@@ -2,28 +2,39 @@ import Koa from "koa";
 import { getConfig } from "./config";
 import path from "path";
 import fs from "fs";
-import { sendHttpResponse } from "./utils";
+import {
+  JSONMessageObject,
+  runWithDebugCheck,
+  sendHttpResponse,
+} from "./utils";
 import { sprintf } from "sprintf-js";
+import chalk from "chalk";
 
 // 各种路由错误信息
-export enum RouteError {
-  InterfacePathIllegal = "Path '%s' must contain controller and action",
-  ControllerFileNotExist = "Controller file '%s' does not exist",
-  ControllerNotExist = "The file '%s' does not exist for the default exported controller",
-  ActionNotExist = "Action '%s' does not exist",
-  ServerHasNoOutput = "The server does not have any output",
-}
+export const RouteError = {
+  InterfacePathIllegal: `Path %s must contain controller and action information`,
+  ControllerFileNotExist: `Controller file %s does not exist`,
+  ControllerNotExist: `The file %s does not exist for the default exported controller`,
+  ActionNotExist: `Action %s does not exist`,
+  ServerHasNoOutput: "No response content from the server",
+};
 
 /**
  * 所有的路由错误都当做404错误
  * @param ctx
  * @param message
  */
-function responseRouterError(ctx: Koa.Context, message: string) {
-  if (getConfig("printError")) {
-    console.error(message);
-  }
-  sendHttpResponse(ctx, { code: 404, message: "404 Not Found" });
+function sendErrorResponse(ctx: Koa.Context, message: string) {
+  const result: JSONMessageObject<string> = {
+    code: 404,
+    message: "404 Not Found",
+  };
+  runWithDebugCheck(() => {
+    console.error("Error:", chalk.red(message));
+    result.data = message;
+  });
+
+  sendHttpResponse(ctx, result);
 }
 
 // 控制器和动作大小写无关缓存
@@ -46,7 +57,7 @@ export async function route(ctx: Koa.Context) {
   const segments = routePath.split("/");
   // 强制要求段数至少为controller/action两段，少于两段则认为不合法
   if (segments.length < 2) {
-    return responseRouterError(
+    return sendErrorResponse(
       ctx,
       sprintf(RouteError.InterfacePathIllegal, ctx.path)
     );
@@ -77,7 +88,7 @@ export async function route(ctx: Koa.Context) {
 
   // 如果控制器文件不存在
   if (!fs.existsSync(controllerFile)) {
-    return responseRouterError(
+    return sendErrorResponse(
       ctx,
       sprintf(RouteError.ControllerFileNotExist, controllerFile)
     );
@@ -88,7 +99,7 @@ export async function route(ctx: Koa.Context) {
 
   // 验证控制器存在与否
   if (typeof controllerClass !== "function") {
-    return responseRouterError(
+    return sendErrorResponse(
       ctx,
       sprintf(RouteError.ControllerNotExist, controllerFile)
     );
@@ -119,7 +130,7 @@ export async function route(ctx: Koa.Context) {
 
   // 判断动作是否存在
   if (!actionName) {
-    return responseRouterError(
+    return sendErrorResponse(
       ctx,
       sprintf(RouteError.ActionNotExist, actionName)
     );

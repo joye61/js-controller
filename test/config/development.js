@@ -1,5 +1,5 @@
 module.exports = {
-  printError: true,
+  debug: true,
   mongodbConnectOption: {
     host: "127.0.0.1",
     port: 27017,
