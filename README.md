@@ -1,5 +1,25 @@
 # 适用于轻量级服务器的控制器脚手架
 
+安装
+
+```
+npm i js-controller
+```
+
+引入
+
+```js
+// 导入库
+import { runApp } from "js-controller";
+// 启动App
+runApp()
+// 或者启动时传递配置文件目录
+runApp("path/to/configRootDir")
+```
+
+> 完整示例请参考项目下 [test](./test) 目录
+
+
 ## 配置文件约定
 
 - 启动应用程序时，可以指定配置文件根目录`runApp("path/to/configRoot")`，如果未指定，则默认为项目根目录下`config`文件夹
