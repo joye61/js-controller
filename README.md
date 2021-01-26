@@ -1,32 +1,35 @@
-# 适用于轻量级服务器的控制器脚手架
+# A simple controller scaffold
 
-安装
+Simple controller scaffolding for small individual projects
+
+
+Installation
 
 ```
 npm i js-controller
 ```
 
-引入
+Import
 
 ```js
-// 导入库
+// Import Library
 import { runApp } from "js-controller";
-// 启动App
+// Launch App
 runApp()
-// 或者启动时传递配置文件目录
+// Or pass the configuration file directory at startup
 runApp("path/to/configRootDir")
 ```
 
-> 完整示例请参考项目下 [test](./test) 目录
+> For a complete example, please refer to the project under [test](. /test) directory
 
 
-## 配置文件约定
+## Configuration file conventions
 
-- 启动应用程序时，可以指定配置文件根目录`runApp("path/to/configRoot")`，如果未指定，则默认为项目根目录下`config`文件夹
-- 假设配置文件根目录为`config`，必须存在`config/main.js` 代表通用配置文件
-- 假设配置文件根目录为`config`，必须存在`config/[process.env.NODE_ENV].js`代表环境相关的配置文件
+- When starting the application, you can specify the configuration file root `runApp("path/to/configRoot")`, if not specified, the default is the `config` folder in the project root
+- Assuming the configuration file root directory is `config`, `config/main.js` must exist to represent the generic configuration file
+- Assuming that the configuration file root is `config`, `config/[process.env.NODE_ENV].js` must exist to represent the environment-related configuration file
 
-假设配置文件根目录为`config`，那么：
+Assuming the configuration file root is `config`, then:
 
 ```
 ┣━config
@@ -36,80 +39,82 @@ runApp("path/to/configRootDir")
   ┣━...
 ```
 
-## 配置项约定
+## Configuration item conventions
+
+Scaffolding supports `mongodb` database by default and will automatically connect if the `mongodb` connection parameter is included in the configuration project
 
 ```ts
-// 针对mongodb数据库
+// For mongodb databases
 interface MongodbConnectOption {
-  // 主机名
+  // Host name
   host: string;
-  // 端口号
+  // Port number
   port: string;
-  // 默认连接的数据库
+  // The default database to connect to
   database?: string;
-  // 用户名
+  // user name
   user?: string;
-  // 密码
+  // password
   password?: string;
-  // 是否开启调试
+  // Whether debugging is enabled or not
   debug?: boolean;
 }
 
 interface ConfigOption {
-  // 应用程序名字
+  // Application name
   appName?: string;
-  // 应用程序版本
+  // Application version
   appVersion?: string;
-  // 监听本地地址
+  // Listen to the local address
   httpHost?: string;
-  // 监听的端口
+  // The port to listen on
   httpPort?: number | string;
-  // 是否开启调试，这个模式会输出错误等信息
+  // If or not debugging is enabled, this mode will output errors and other information
   debug: boolean;
-  // POST请求的请求体限制（字节）
+  // POST request body limit (bytes)
   postBodyLimit?: number;
-  // 控制器根目录
+  // Controller root directory
   controllerRootDir: string;
-  // 调用动作之前触发的钩子名字
+  // name of the hook that is triggered before the action is called
   onBeforeActionHook?: string;
-  // 调用动作之后触发的钩子名字
+  // The name of the hook that fires after the action is invoked
   onAfterActionHook?: string;
-  // mongodb数据库链接选项
+  // mongodb database linking option
   mongodbConnectOption?: MongodbConnectOption;
 }
 ```
 
-配置项 `controllerRootDir` 是必须的，代表**控制器文件的根目录**
+> The configuration item `controllerRootDir` is required and represents the root directory of the **controller files**
 
-## 路由查找规则
-
-```
-/path/to/控制器/动作
-```
-
-如：`/module/article/search`
-
-路径的最后一段`search`会被当成动作名，前面的部分`/module/article`会被当做控制器文件的路径，最终将解析得到：
-
-- 控制器文件: `path/to/[controllerRootDir]/module/article.js`   
-- 动作名字: `search`
-
-
-控制器文件名和动作名都是不区分大小写的：
+## Routing rules
 
 ```
-/module/ArtIcle/search  合法，控制器不分大小写
-/module/ArtIcle/seArch  合法，控制器和动作不分大小写
-/module/article/SeaRch  合法，动作不分大小写
-/Module/article/SeaRch  不合法，只有控制器和动作不分大小写
+/path/to/[controller]/[action]
 ```
 
-## 控制器约定
+For example: `/module/article/search`
 
-控制器文件对应一个模块，此模块必须有一个**默认导出的类**，`js-controller`将会实例化该类，然后调用该类的动作，如下：
+The last part of the path `search` will be treated as the action name, and the previous part `/module/article` will be treated as the path to the controller file, which will eventually resolve to
+
+- Controller file: `path/to/[controllerRootDir]/module/article.js`   
+- Action name: `search`
+
+
+Controller filenames and action names are case-insensitive:
+
+```
+/module/ArtIcle/search  legal, controller is not case sensitive
+/module/ArtIcle/seArch  legal, controller and action are case-insensitive
+/module/article/SeaRch  legal, actions are case insensitive
+/module/article/SeaRch  illegal, only controllers and actions are case-insensitive
+```
+
+## Controller Conventions
+
+The controller file corresponds to a module, this module must have a **default exported class**, `js-controller` will instantiate that class and then call the actions of that class as follows: 
 
 ```js
-// 控制器
+// Controller
 export default class Article {
   search(){
     // TODO
@@ -117,12 +122,12 @@ export default class Article {
 }
 ```
 
-对应的路径为 `/path/to/article/search`
+The corresponding path is `/path/to/article/search`
 
 
-# 开发
+# Development
 
-克隆项目，同时运行，可开启开发测试，`test`目录为测试代码
+Clone the project, run it at the same time, you can open the development test, `test` directory for the test code
 
 ```
 npm run ts
