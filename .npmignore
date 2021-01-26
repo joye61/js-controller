@@ -7,4 +7,5 @@ node_modules/
 /.gitignore
 /.vscode
 /nodemon.json
+/test/
 .DS_Store
