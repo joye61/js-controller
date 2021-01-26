@@ -24,7 +24,7 @@ export async function runApp(configRootDir?: string) {
     await connectMongodb(mongodbUriInfo);
   }
 
-  // 创建Koa实例
+  // Creating Koa Instances
   const koa = new Koa();
   koa.proxy = true;
 

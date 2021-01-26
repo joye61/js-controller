@@ -10,7 +10,7 @@ import {
 import { sprintf } from "sprintf-js";
 import chalk from "chalk";
 
-// 各种路由错误信息
+// Various routing error messages
 export const RouteError = {
   InterfacePathIllegal: `Path %s must contain controller and action information`,
   ControllerFileNotExist: `Controller file %s does not exist`,
@@ -20,7 +20,7 @@ export const RouteError = {
 };
 
 /**
- * 所有的路由错误都当做404错误
+ * All routing errors are treated as 404 errors
  * @param ctx
  * @param message
  */
@@ -37,25 +37,28 @@ function sendErrorResponse(ctx: Koa.Context, message: string) {
   sendHttpResponse(ctx, result);
 }
 
-// 控制器和动作大小写无关缓存
+// Controller and action case-independent caching
 interface CaseInsensitiveNameMap {
   [key: string]: Map<string, string>;
 }
 
-// 键为控制器所在目录，值为控制器文件名大小写映射
+// The key is the directory where the controller is located, 
+// and the value is the case mapping of the controller file name
 const controllerNameMap: CaseInsensitiveNameMap = {};
-// 键为控制器文件，值为控制器所有动作大小写映射
+// The key is the controller file and the value 
+// is the case mapping of all controller actions
 const actionNameMap: CaseInsensitiveNameMap = {};
 
 /**
- * 路由功能
+ * Routing Function
  * @param ctx
  */
 export async function route(ctx: Koa.Context) {
-  // 获取路由路径
+  // Get routing path
   const routePath = ctx.path.replace(/^\/*|\/*$/g, "");
   const segments = routePath.split("/");
-  // 强制要求段数至少为controller/action两段，少于两段则认为不合法
+  // Mandatory paragraph number of at least two paragraphs for controller/action, 
+  // less than two paragraphs is not considered legal
   if (segments.length < 2) {
     return sendErrorResponse(
       ctx,
@@ -63,12 +66,12 @@ export async function route(ctx: Koa.Context) {
     );
   }
 
-  // 获取存放控制器文件的根目录
+  // Get the root directory where the controller files are stored
   const rootDir = getConfig("controllerRootDir")!;
   let actionName: string | undefined = segments.pop()!;
   let controllerName: string | undefined = segments.pop()!;
 
-  // 获取当前控制器目录
+  // Get the current controller directory
   const controllerDir = path.resolve(rootDir, segments.join(path.sep));
   if (!controllerNameMap[controllerDir]) {
     controllerNameMap[controllerDir] = new Map<string, string>();
@@ -78,7 +81,7 @@ export async function route(ctx: Koa.Context) {
     }
   }
 
-  // 获取控制器文件
+  // Get the controller file
   const controllerFile = path.resolve(
     rootDir,
     `./${controllerNameMap[controllerDir].get(
@@ -86,7 +89,7 @@ export async function route(ctx: Koa.Context) {
     )}`
   );
 
-  // 如果控制器文件不存在
+  // If the controller file does not exist
   if (!fs.existsSync(controllerFile)) {
     return sendErrorResponse(
       ctx,
@@ -94,10 +97,10 @@ export async function route(ctx: Koa.Context) {
     );
   }
 
-  // 加载控制器类
+  // If the controller file does not exist
   let controllerClass = (await import(controllerFile)).default;
 
-  // 验证控制器存在与否
+  // Verify the presence or absence of the controller
   if (typeof controllerClass !== "function") {
     return sendErrorResponse(
       ctx,
@@ -105,10 +108,10 @@ export async function route(ctx: Koa.Context) {
     );
   }
 
-  // 创建控制器实例
+  // Creating a controller instance
   const controller = new controllerClass(ctx);
 
-  // 如果大小写映射不存在，则先将映射存储
+  // If the case mapping does not exist, the mapping is stored first
   if (!actionNameMap[controllerFile]) {
     actionNameMap[controllerFile] = new Map<string, string>();
     const propertyNames = [
@@ -125,11 +128,11 @@ export async function route(ctx: Koa.Context) {
     }
   }
 
-  // 获取真实动作名
+  // Get real action name
   const rawActionName = actionName;
   actionName = actionNameMap[controllerFile].get(actionName.toLowerCase());
 
-  // 判断动作是否存在
+  // Determine if the action exists
   if (!actionName) {
     return sendErrorResponse(
       ctx,
@@ -137,26 +140,27 @@ export async function route(ctx: Koa.Context) {
     );
   }
 
-  // 是否有前置动作钩子
+  // Whether there are pre-action hooks
   const onBeforeActionHook: string = getConfig("onBeforeActionHook")!;
   if (typeof controller[onBeforeActionHook] === "function") {
     const beforeHookResult = await controller[onBeforeActionHook]();
-    // 当前置钩子返回prevent关键字的时候，阻止继续执行
+    // Prevent execution from continuing when 
+    // the former hook returns the prevent keyword
     if (beforeHookResult === "prevent") {
       return;
     }
   }
 
-  // 调用动作
+  // Calling the action
   await controller[actionName]();
 
-  // 后置钩子
+  // Post-hooks
   const onAfterActionHook: string = getConfig("onAfterActionHook")!;
   if (typeof controller[onAfterActionHook] === "function") {
     await controller[onAfterActionHook]();
   }
 
-  // 如果服务器没有任何响应，输入默认响应
+  // If there is no response from the server, enter the default response
   if (!ctx.body) {
     sendHttpResponse(ctx, { message: RouteError.ServerHasNoOutput });
   }
