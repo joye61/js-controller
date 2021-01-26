@@ -86,6 +86,7 @@ interface ConfigOption {
 
 > The configuration item `controllerRootDir` is required and represents the root directory of the **controller files**
 
+
 ## Routing rules
 
 ```
