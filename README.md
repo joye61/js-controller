@@ -105,9 +105,8 @@ Controller filenames and action names are case-insensitive:
 
 ```
 /module/ArtIcle/search  legal, controller is not case sensitive
-/module/ArtIcle/seArch  legal, controller and action are case-insensitive
+/module/ArtIcle/seArch  legal, controller and action are case insensitive
 /module/article/SeaRch  legal, actions are case insensitive
-/module/article/SeaRch  illegal, only controllers and actions are case-insensitive
 ```
 
 ## Controller Conventions
