@@ -1,9 +1,10 @@
 {
-  "verbose": true,
   "restartable": "rs",
+  "ignore": [".git", "node_modules/"],
+  "verbose": true,
+  "watch": ["./"],
   "env": {
     "NODE_ENV": "development"
   },
-  "ext": "js,json",
-  "watch": ["./test", "./dist"]
+  "ext": "js,json"
 }
