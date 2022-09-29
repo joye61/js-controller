@@ -1,6 +1,6 @@
-import Server from "koa";
-import koaBody from "koa-body";
-import readdirp, { ReaddirpOptions } from "readdirp";
+import Server from 'koa';
+import koaBody from 'koa-body';
+import readdirp, { ReaddirpOptions } from 'readdirp';
 
 interface JSControllerConfig {
   rootDir: string;
@@ -8,16 +8,11 @@ interface JSControllerConfig {
   port?: number;
   bodyOption?: koaBody.IKoaBodyOptions;
   // 应用启动时触发
-  onStart?: () => Promise<void>;
+  onAppStart?: () => Promise<void>;
   // 路由开始前触发
-  onBeforeRoute?: (ctx: ActionParam) => Promise<void>;
-  /**
-   * 路由开始时触发
-   * @return boolean 是否阻止后续路由
-   */
-  onStartRoute?: (ctx: ActionParam) => Promise<boolean>;
+  onBeforeRoute?: (ctx: ActionParam) => Promise<boolean>;
   // 路由结束后触发
-  onEndRoute?: () => Promise<void>;
+  onAfterRoute?: (ctx: ActionParam) => Promise<void>;
 }
 
 type ActionParam = Server.ParameterizedContext<
@@ -36,7 +31,7 @@ export class JSController {
     let bodyOption = option.bodyOption ?? {};
     delete option.bodyOption;
     this.config = {
-      defaultRoute: "index/index",
+      defaultRoute: '/index/index',
       port: 4000,
       bodyOption: {
         jsonLimit: 1 * 1024 * 1024,
@@ -55,13 +50,13 @@ export class JSController {
    * 启动APP
    */
   async run() {
-    await this.config.onStart?.();
+    await this.config.onAppStart?.();
     await this.register();
     await this.startServer();
   }
 
   normalize(pathname: string) {
-    pathname = pathname.replace(/^\/*|\/*$/g, "").trim();
+    pathname = pathname.replace(/^\/*|\/*$/g, '').trim();
     return pathname;
   }
 
@@ -70,18 +65,22 @@ export class JSController {
    */
   async register() {
     const readOption: ReaddirpOptions = {
-      fileFilter: ["*.js", "*.mjs"],
+      fileFilter: ['*.js', '*.mjs'],
     };
     for await (const entry of readdirp(this.config.rootDir, readOption)) {
       const name = this.normalize(
-        entry.path.replace(/\.js$/i, "")
+        entry.path.replace(/\.js$/i, '')
       ).toLowerCase();
       const module = await import(entry.fullPath);
       const keys = Object.keys(module);
       for (let key of keys) {
         // 下划线开头的键认为是私有的，不能访问
         // 动作必须是函数
-        if (!key.startsWith("_") && typeof module[key] === "function") {
+        if (
+          !key.startsWith('_') &&
+          key !== 'default' &&
+          typeof module[key] === 'function'
+        ) {
           this.cache[name + `/${key.toLowerCase()}`] = module[key];
         }
       }
@@ -100,31 +99,32 @@ export class JSController {
     app.use(async (ctx, next) => {
       ctx.form = ctx.request.body;
       ctx.files = ctx.request.files;
-      ctx.json = (data = null, code = 0, message = "success") => {
-        ctx.status = 200;
-        ctx.type = "json";
-        ctx.body = JSON.stringify({ data, code, message });
+      ctx.json = function (data = null, code = 0, message = 'ok') {
+        this.status = 200;
+        this.type = 'json';
+        this.body = JSON.stringify({ data, code, message });
       };
-      ctx.queryParam = (name: string) => {
+      ctx.GET = (name: string) => {
         return (<any>ctx.search)[name];
       };
-      ctx.formParam = (name: string) => {
+      ctx.POST = (name: string) => {
         return ctx.form[name];
       };
       ctx.param = (name: string) => {
         let find = ctx.search as any;
-        if (typeof ctx.form === "object") {
+        if (typeof ctx.form === 'object') {
           find = { ...find, ...ctx.form };
         }
         return find[name];
       };
+
       await this.config.onBeforeRoute?.(ctx);
       await next();
     });
 
     app.use(async (ctx) => {
       // 路由前置钩子
-      const preventRoute = await this.config.onStartRoute?.(ctx);
+      const preventRoute = await this.config.onBeforeRoute?.(ctx);
       // 前置钩子可以返回指示阻止后续路由的逻辑
       if (preventRoute) {
         return;
@@ -143,7 +143,7 @@ export class JSController {
         ctx.json();
       }
       // 路由后置钩子
-      await this.config.onEndRoute?.();
+      await this.config.onAfterRoute?.(ctx);
     });
 
     app.listen(this.config.port);
@@ -164,7 +164,7 @@ export class JSController {
     if (action) {
       return action;
     }
-    // 如果action不存在，尝试认为没有action路径
-    return this.cache[route + "/index"];
+    // 如果action不存在，尝试检测名为index的action路径
+    return this.cache[route + '/index'];
   }
 }
