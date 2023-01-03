@@ -1,5 +1,4 @@
 import { type Database } from 'better-sqlite3';
-import { log } from './utils';
 
 export type ValueHolders = {
   prepare: string;
@@ -15,7 +14,9 @@ export class Table {
    * @param order
    * @returns
    */
-  public createOrder(order?: Record<string, Uppercase<'ASC' | 'DESC'>> | null): string {
+  public createOrder(
+    order?: Record<string, Uppercase<'ASC' | 'DESC'>> | null
+  ): string {
     if (!order) {
       return '';
     }
@@ -83,7 +84,7 @@ export class Table {
         list = value;
       }
 
-      if(list) {
+      if (list) {
         let result = createInPair(list);
         prepare += `(${result.prepare})`;
         holders.push(...result.holders);
@@ -275,7 +276,10 @@ export class Table {
    * @param where
    * @param data
    */
-  public update(data: Record<string, any>, where?: Record<string, any> | null): boolean {
+  public update(
+    data: Record<string, any>,
+    where?: Record<string, any> | null
+  ): boolean {
     let parts: string[] = [];
     let holders: Array<string | number> = [];
     for (let key in data) {
@@ -316,7 +320,7 @@ export class Table {
       }
       return result.changes > 0;
     } catch (error) {
-      log(error);
+      console.error(error);
       return false;
     }
   }
@@ -327,13 +331,16 @@ export class Table {
    * @param holders
    * @returns
    */
-  public query<T = any>(sql: string, ...holders: Array<string | number>): Array<T> {
+  public query<T = any>(
+    sql: string,
+    ...holders: Array<string | number>
+  ): Array<T> {
     try {
       const stat = this.db.prepare(sql);
       const result = stat.all(...holders);
       return result as Array<T>;
     } catch (error) {
-      log(error);
+      console.error(error);
       return [];
     }
   }

@@ -1,13 +1,14 @@
 {
   "name": "js-controller",
-  "version": "0.0.7",
+  "version": "0.0.9",
   "description": "Use controllers to handle http requests",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "scripts": {
     "ts": "tsc -w --pretty",
     "dev": "nodemon --config ./nodemon.json ./example/index.js",
-    "build": "rm -rfv ./dist && tsc --pretty"
+    "build": "rm -rfv ./dist && tsc --pretty",
+    "pub": "npm run build && npm publish"
   },
   "repository": {
     "type": "git",
@@ -20,7 +21,8 @@
   "keywords": [
     "controller",
     "koa",
-    "http"
+    "http",
+    "mvc"
   ],
   "author": "Joye",
   "license": "MIT",

@@ -1,11 +1,10 @@
 import path from 'path';
-import { serverConfig } from '../config';
 import SQLiteConstructor, { type Database } from 'better-sqlite3';
 import { Table } from './table';
-import { log } from './utils';
+import { App } from './app';
 
 export interface CachedDbs {
-  [dbname: string]: SQLite;
+  [dbpath: string]: SQLite;
 }
 
 export interface CachedTables {
@@ -17,21 +16,24 @@ export class SQLite {
   private tables: CachedTables = {};
   private static dbs: CachedDbs = {};
   private db: Database;
-  private constructor(private dbname: string) {
-    let fullPath = path.resolve(serverConfig.dbDir, this.dbname);
-    this.db = new SQLiteConstructor(fullPath, { verbose: log });
+  private constructor(private dbpath: string) {
+    this.db = new SQLiteConstructor(path.normalize(this.dbpath), {
+      verbose(...args: any[]) {
+        App.env() === 'development' && console.log(...args);
+      },
+    });
   }
 
   /**
    * 创建一个SQLite数据库实例
-   * @param dbname
+   * @param dbpath string
    * @returns
    */
-  public static create(dbname: string = 'main.db') {
-    if (SQLite.dbs[dbname] instanceof SQLiteConstructor) {
-      return SQLite.dbs[dbname];
+  public static create(dbpath: string) {
+    if (SQLite.dbs[dbpath] instanceof SQLiteConstructor) {
+      return SQLite.dbs[dbpath];
     }
-    return (SQLite.dbs[dbname] = new SQLite(dbname));
+    return (SQLite.dbs[dbpath] = new SQLite(dbpath));
   }
 
   /**

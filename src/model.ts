@@ -1,8 +1,14 @@
 import { SQLite } from './sqlite';
 
 export class Model {
-  protected table(tableName: string, dbName = 'main.db') {
-    return SQLite.create(dbName).table(tableName);
+  /**
+   * 创建一个SQLite库
+   * @param tableName
+   * @param dbPath
+   * @returns
+   */
+  protected sqliteTable(tableName: string, dbPath: string) {
+    return SQLite.create(dbPath).table(tableName);
   }
 
   /**

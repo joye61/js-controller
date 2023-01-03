@@ -1,8 +1,8 @@
 import koaBody from 'koa-body';
 import Server, { type Context } from 'koa';
-import { serverConfig } from '../config';
 import readdirp, { ReaddirpOptions } from 'readdirp';
 import path from 'path';
+import { AppConfig } from './config';
 
 export interface RouterData {
   class: new (c: Context) => any;
@@ -16,7 +16,16 @@ export interface CachedRouter {
 export class App {
   // APP对象是全局单例，保持只有一个
   private static instance?: App = undefined;
+
   private constructor() {}
+
+  /**
+   * 获取当前环境
+   * @returns
+   */
+  public static env() {
+    return process.env.NODE_ENV || 'development';
+  }
 
   /**
    * 获取APP实例对象
@@ -36,7 +45,8 @@ export class App {
    * 检测所有的路由逻辑
    */
   private async detectAllRouter() {
-    let scanDir = path.resolve(serverConfig.root, './controllers');
+    let root = <string>AppConfig.getInstance().item('controllerRoot');
+    let scanDir = path.normalize(root);
     let filter: ReaddirpOptions = { fileFilter: ['*.js', '*.mjs'] };
     for await (const entry of readdirp(scanDir, filter)) {
       let pathname = entry.path
@@ -64,8 +74,11 @@ export class App {
           actionName,
         };
         let actionUri = actionName.toLowerCase();
-        // 如果动作名称为index，可以作为默认路由
-        if (actionUri === 'index') {
+        // 可以配置一个默认路由
+        let defaultAction = <string>(
+          AppConfig.getInstance().item('defaultAction')
+        );
+        if (actionUri === defaultAction) {
           this.cachedRouter[pathname] = routerData;
         }
         this.cachedRouter[`${pathname}/${actionUri}`] = routerData;
@@ -113,6 +126,6 @@ export class App {
       await controller[data.actionName]();
     });
 
-    server.listen(serverConfig.port);
+    server.listen(<number>AppConfig.getInstance().item('port'));
   }
 }
