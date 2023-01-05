@@ -118,6 +118,34 @@ export class Table {
   }
 
   /**
+   * 创建数据过滤，用于update逻辑
+   * @param key
+   * @param value
+   * @returns
+   */
+  public createDataFilter(key: string, value: any): ValueHolders {
+    // 定义返回值
+    let prepare = '';
+    let holders: Array<any> = [];
+    const found = key.match(/^\s*(.+?)\s*([\+\-\*\/]=)?\s*$/);
+    if (!found) {
+      return { prepare, holders };
+    }
+    let field = found[1].trim();
+    if (!found[2]) {
+      prepare = `\`${field}\` = ?`;
+      holders.push(value as any);
+      return { prepare, holders };
+    }
+
+    // 带运算操作
+    let op = found[2].trim()[0];
+    prepare = `\`${field}\` = \`${field}\` ${op} ?`;
+    holders.push(value as any);
+    return { prepare, holders };
+  }
+
+  /**
    * 创建where条件段
    * @param where
    * @returns
@@ -248,34 +276,6 @@ export class Table {
     } else {
       return result[0].total_num;
     }
-  }
-
-  /**
-   * 创建数据过滤，用于update逻辑
-   * @param key
-   * @param value
-   * @returns
-   */
-  public createDataFilter(key: string, value: any): ValueHolders {
-    // 定义返回值
-    let prepare = '';
-    let holders: Array<any> = [];
-    const found = key.match(/^\s*(.+?)\s*([\+\-\*\/]=)?\s*$/);
-    if (!found) {
-      return { prepare, holders };
-    }
-    let field = found[1].trim();
-    if (!found[2]) {
-      prepare = `\`${field}\` = ?`;
-      holders.push(value as any);
-      return { prepare, holders };
-    }
-
-    // 带运算操作
-    let op = found[2].trim()[0];
-    prepare = `\`${field}\` = \`${field}\` ${op} ?`;
-    holders.push(value as any);
-    return { prepare, holders };
   }
 
   /**
