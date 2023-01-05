@@ -1,5 +1,6 @@
 import type { Context } from 'koa';
-import type { HookReturnValue } from './types';
+
+export type HookReturnValue = 'abort' | 'continue';
 
 export class Controller {
   protected constructor(protected context: Context) {}

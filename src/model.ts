@@ -13,7 +13,7 @@ export class Model {
 
   /**
    * 标准化页码信息
-   * @param page
+   * @param page 页码约定从1开始
    * @param pageSize
    */
   protected normalizePageInfo(page: number = 1, pageSize: number = 10) {

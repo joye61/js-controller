@@ -35,7 +35,6 @@
     "koa": "^2.14.1",
     "koa-body": "^5.0.0",
     "mongodb": "^4.13.0",
-    "mysql2": "^2.3.3",
     "readdirp": "^3.6.0"
   },
   "devDependencies": {

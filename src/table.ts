@@ -1,4 +1,4 @@
-import { type Database } from 'better-sqlite3';
+import type { Idb } from './types';
 
 export type ValueHolders = {
   prepare: string;
@@ -6,8 +6,15 @@ export type ValueHolders = {
 };
 
 export class Table {
-  public lastInsertId: number = 0;
-  constructor(public name: string, public db: Database) {}
+  constructor(public name: string, public db: Idb) {}
+
+  /**
+   * 返回上次插入的ID
+   * @returns
+   */
+  public lastInsertId() {
+    return this.db.lastInsertId;
+  }
 
   /**
    * 创建排序字段
@@ -183,7 +190,7 @@ export class Table {
       sql += ` LIMIT ${offset}, ${limit}`;
     }
 
-    return this.query<T>(sql, ...whereResult.holders);
+    return this.db.query<T>(sql, whereResult.holders);
   }
 
   /**
@@ -204,7 +211,7 @@ export class Table {
     let sql = `INSERT INTO \`${this.name}\` (${fields.join(
       ', '
     )}) VALUES (${places.join(', ')})`;
-    return this.exec(sql, holders);
+    return this.db.exec(sql, holders);
   }
 
   /**
@@ -218,7 +225,7 @@ export class Table {
     if (whereResult.prepare) {
       sql += ` WHERE ${whereResult.prepare}`;
     }
-    return this.exec(sql, whereResult.holders);
+    return this.db.exec(sql, whereResult.holders);
   }
 
   /**
@@ -232,9 +239,9 @@ export class Table {
     if (whereResult.prepare) {
       sql += ` WHERE ${whereResult.prepare}`;
     }
-    let result: Array<{ total_num: number }> = this.query(
+    let result: Array<{ total_num: number }> = this.db.query(
       sql,
-      ...whereResult.holders
+      whereResult.holders
     );
     if (result.length === 0) {
       return 0;
@@ -302,46 +309,6 @@ export class Table {
       holders.push(...whereResult.holders);
     }
 
-    return this.exec(sql, holders);
-  }
-
-  /**
-   * 执行更新、添加、删除操作
-   * @param sql
-   * @param holders
-   * @returns
-   */
-  public exec(sql: string, holders: Array<string | number>): boolean {
-    try {
-      const stat = this.db.prepare(sql);
-      const result = stat.run(...holders);
-      if (result.lastInsertRowid && result.lastInsertRowid > 0) {
-        this.lastInsertId = Number(result.lastInsertRowid);
-      }
-      return result.changes > 0;
-    } catch (error) {
-      console.error(error);
-      return false;
-    }
-  }
-
-  /**
-   * 执行查询操作
-   * @param sql
-   * @param holders
-   * @returns
-   */
-  public query<T = any>(
-    sql: string,
-    ...holders: Array<string | number>
-  ): Array<T> {
-    try {
-      const stat = this.db.prepare(sql);
-      const result = stat.all(...holders);
-      return result as Array<T>;
-    } catch (error) {
-      console.error(error);
-      return [];
-    }
+    return this.db.exec(sql, holders);
   }
 }

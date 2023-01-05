@@ -7,9 +7,9 @@ import {
   MatchKeysAndValues,
   MongoClient,
   ObjectId,
-} from "mongodb";
+} from 'mongodb';
 
-interface MdbConfig {
+export interface MdbConfig {
   name: string;
   user?: string;
   password?: string;
@@ -90,7 +90,7 @@ export class MClient {
       config.hosts.forEach((item) => {
         pairs.push(`${item.host}:${item.port}`);
       });
-      uri += `${pairs.join(",")}`;
+      uri += `${pairs.join(',')}`;
 
       // 创建连接
       const client = new MongoClient(uri, {
@@ -99,7 +99,7 @@ export class MClient {
       });
 
       // 一旦服务器链接关闭，清理当前客户端缓存
-      client.once("serverClosed", () => {
+      client.once('serverClosed', () => {
         delete MClient.clients[config.name];
       });
 
@@ -153,7 +153,7 @@ export class MCol {
    * 删除一条数据
    * @param {*} filter
    */
-  async removeOne(filter: Filter<Document>) {
+  async remove(filter: Filter<Document>) {
     const result = await this.instance.deleteOne(filter);
     if (result.acknowledged && result.deletedCount === 1) {
       return true;
@@ -165,7 +165,7 @@ export class MCol {
    * 删除多条数据
    * @param {*} filter
    */
-  async removeMany(filter: Filter<Document>) {
+  async removes(filter: Filter<Document>) {
     const result = await this.instance.deleteMany(filter);
     if (result.acknowledged) {
       return true;
@@ -200,10 +200,7 @@ export class MCol {
    * @param {*} filter
    * @param {*} data
    */
-  async updateOne(
-    filter: Filter<Document>,
-    data: MatchKeysAndValues<Document>
-  ) {
+  async update(filter: Filter<Document>, data: MatchKeysAndValues<Document>) {
     const result = await this.instance.updateOne(filter, {
       $set: data,
     });
@@ -218,10 +215,7 @@ export class MCol {
    * @param {*} filter
    * @param {*} data
    */
-  async updateMany(
-    filter: Filter<Document>,
-    data: MatchKeysAndValues<Document>
-  ) {
+  async updates(filter: Filter<Document>, data: MatchKeysAndValues<Document>) {
     const result = await this.instance.updateMany(filter, { $set: data });
     if (result.acknowledged && result.modifiedCount > 0) {
       return true;
@@ -234,7 +228,7 @@ export class MCol {
    * @param {*} data
    * @returns 成功则返回上次添加的_id
    */
-  async addOne(data: Document) {
+  async add(data: Document) {
     const result = await this.instance.insertOne(data);
     if (result.acknowledged) {
       return result.insertedId;
@@ -246,7 +240,7 @@ export class MCol {
    * @param {*} data
    * @returns 成功则返回上次添加的_id列表
    */
-  async addMany(
+  async adds(
     data: (Document & {
       _id?: ObjectId | undefined;
     })[]
@@ -265,8 +259,8 @@ export class MCol {
    * @param {*} filter
    * @param {*} option
    */
-  async findOne(filter: Filter<Document>, option: FindOptions<Document>) {
-    return await this.instance.findOne(filter, option);
+  async get(filter: Filter<Document>, option: FindOptions<Document>) {
+    return this.instance.findOne(filter, option);
   }
 
   /**
@@ -275,7 +269,7 @@ export class MCol {
    * @param {*} option
    * @returns
    */
-  async findMany(filter: Filter<Document>, option: FindOptions<Document>) {
+  async gets(filter: Filter<Document>, option: FindOptions<Document>) {
     const cursor = await this.instance.find(filter, option);
     const hasNext = await cursor.hasNext();
     const output: Document[] = [];
