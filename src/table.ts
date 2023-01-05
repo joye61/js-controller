@@ -9,14 +9,6 @@ export class Table {
   constructor(public name: string, public db: Idb) {}
 
   /**
-   * 返回上次插入的ID
-   * @returns
-   */
-  public lastInsertId() {
-    return this.db.lastInsertId;
-  }
-
-  /**
    * 创建排序字段
    * @param order
    * @returns
