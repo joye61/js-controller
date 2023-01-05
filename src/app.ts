@@ -20,14 +20,6 @@ export class App {
   private constructor() {}
 
   /**
-   * 获取当前环境
-   * @returns
-   */
-  public static env() {
-    return process.env.NODE_ENV || 'development';
-  }
-
-  /**
    * 获取APP实例对象
    * @returns
    */
