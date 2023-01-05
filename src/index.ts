@@ -8,5 +8,5 @@ export async function runApp(configData: AppConfigData) {
 
 export { Controller } from './controller';
 export { Model } from './model';
-export { MClient, MCol, col } from './mongodb';
+export { MongoDB, Mdb, MCol } from './mongodb';
 export { SQLite } from './sqlite';

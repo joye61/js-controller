@@ -9,128 +9,86 @@ import {
   ObjectId,
 } from 'mongodb';
 
-export interface MdbConfig {
+export interface MongoDBConfig {
+  // 一个自定义的名字，代表当前的连接实例
   name: string;
-  user?: string;
+  // 连接用户名
+  username?: string;
+  // 连接密码
   password?: string;
-  hosts: Array<{
-    host: string;
-    port?: string;
-  }>;
+  // 主机
+  host: string;
+  // 端口号
+  port?: string | number;
 }
 
-/**
- * 步骤：
- * 1、先调用connect创建客户端连接缓存
- * 2、调用getClient，getDatabse，getCollection获取需要操作的对象
- */
-export class MClient {
-  static clients: Record<string, MongoClient> = {};
+export class MongoDB {
+  private static dbs: Record<string, MongoDB> = {};
+  private constructor(public client: MongoClient) {}
 
   /**
-   * 根据名字获取连接实例
+   * 创建mongodb实例
+   * @param config
+   * @returns
+   */
+  public static async create(config: MongoDBConfig): Promise<MongoDB> {
+    if (!config.name) {
+      throw new Error('Connection name must be specified');
+    }
+    let db = MongoDB.dbs[config.name];
+    if (db instanceof MongoDB) {
+      return db;
+    }
+
+    // 创建新的连接
+    // 拼接数据库链接URI
+    let uri = `mongodb://`;
+    if (config.username && config.password) {
+      uri += `${config.username}:${config.password}@`;
+    }
+    if (!config.host) {
+      config.host = '127.0.0.1';
+    }
+    if (!config.port) {
+      config.port = 27017;
+    }
+    uri += `${config.host}:${config.port}`;
+
+    // 创建连接
+    db = new MongoDB(
+      new MongoClient(uri, {
+        keepAlive: true,
+        noDelay: true,
+      })
+    );
+
+    // 一旦服务器链接关闭，清理当前客户端缓存
+    db.client.once('serverClosed', () => {
+      delete MongoDB.dbs[config.name];
+    });
+
+    // 连接客户端，出错直接抛出异常
+    await db.client.connect();
+    MongoDB.dbs[config.name] = db;
+
+    return db;
+  }
+
+  /**
+   * 获取Db实例
    * @param name
    * @returns
    */
-  static getClient(clientName: string): MongoClient {
-    const client = MClient.clients[clientName];
-    if (!client) {
-      throw new Error(`Database connection [${clientName}] does not exist`);
-    }
-    return client;
+  public db(name: string): Mdb {
+    return new Mdb(this.client.db(name));
   }
-
-  /**
-   * 获取数据库
-   * @param dbName
-   * @param clientName
-   * @returns
-   */
-  static getDatabse(dbName: string, clientName: string): Db {
-    let client = MClient.getClient(clientName);
-    return client.db(dbName);
-  }
-
-  /**
-   * 获取集合
-   * @param colName
-   * @param dbName
-   * @param clientName
-   * @returns
-   */
-  static getCollection(
-    colName: string,
-    dbName: string,
-    clientName: string
-  ): Collection {
-    const db = MClient.getDatabse(dbName, clientName);
-    return db.collection(colName);
-  }
-
-  /**
-   * 初始化连接数据库，可以连接多个
-   * @param option
-   */
-  static async connect(option: MdbConfig | MdbConfig[]) {
-    if (!Array.isArray(option)) {
-      option = [option];
-    }
-    for (let config of option) {
-      // 如果连接存在，不重复连接
-      if (MClient.clients[config.name]) {
-        continue;
-      }
-
-      // 拼接数据库链接URI
-      let uri = `mongodb://`;
-      if (config.user && config.password) {
-        uri += `${config.user}:${config.password}@`;
-      }
-      const pairs: string[] = [];
-      config.hosts.forEach((item) => {
-        pairs.push(`${item.host}:${item.port}`);
-      });
-      uri += `${pairs.join(',')}`;
-
-      // 创建连接
-      const client = new MongoClient(uri, {
-        keepAlive: true,
-        noDelay: true,
-      });
-
-      // 一旦服务器链接关闭，清理当前客户端缓存
-      client.once('serverClosed', () => {
-        delete MClient.clients[config.name];
-      });
-
-      // 连接客户端，出错直接抛出异常
-      await client.connect();
-      MClient.clients[config.name] = client;
-    }
-  }
-}
-
-/**
- * 快速创建collection操作实例
- * @param col 集合名
- * @param db 表名
- * @param client 连接名
- * @returns MCol
- */
-export function col(col: string, db: string, client: string) {
-  const instance = MClient.getCollection(col, db, client);
-  return new MCol(instance);
-}
-
-export class MCol {
-  constructor(public instance: Collection) {}
 
   /**
    * 转换为对象id
    * @param id
    * @returns
    */
-  static toObjectId(id: string | ObjectId) {
+  public static toObjectId(id: string | ObjectId) {
     if (id instanceof ObjectId) {
       return id;
     }
@@ -142,31 +100,36 @@ export class MCol {
    * @param id
    * @returns
    */
-  static toStringId(id: string | ObjectId) {
+  public static toStringId(id: string | ObjectId) {
     if (id instanceof ObjectId) {
       return id.toHexString();
     }
     return id;
   }
+}
 
-  /**
-   * 删除一条数据
-   * @param {*} filter
-   */
-  async remove(filter: Filter<Document>) {
-    const result = await this.instance.deleteOne(filter);
-    if (result.acknowledged && result.deletedCount === 1) {
-      return true;
-    }
-    return false;
+/**
+ * 数据库实例
+ */
+export class Mdb {
+  public constructor(public db: Db) {}
+  public col(name: string) {
+    return new MCol(this.db.collection(name));
   }
+}
+
+/**
+ * 集合实例
+ */
+export class MCol {
+  constructor(public col: Collection) {}
 
   /**
    * 删除多条数据
    * @param {*} filter
    */
-  async removes(filter: Filter<Document>) {
-    const result = await this.instance.deleteMany(filter);
+  public async remove(filter: Filter<Document>) {
+    const result = await this.col.deleteMany(filter);
     if (result.acknowledged) {
       return true;
     }
@@ -178,8 +141,11 @@ export class MCol {
    * @param {*} data
    * @param {*} filter
    */
-  async upsert(filter: Filter<Document>, data: MatchKeysAndValues<Document>) {
-    const result = await this.instance.updateOne(
+  public async upsert(
+    filter: Filter<Document>,
+    data: MatchKeysAndValues<Document>
+  ) {
+    const result = await this.col.updateOne(
       filter,
       { $set: data },
       {
@@ -196,27 +162,15 @@ export class MCol {
   }
 
   /**
-   * 更新一条记录
-   * @param {*} filter
-   * @param {*} data
-   */
-  async update(filter: Filter<Document>, data: MatchKeysAndValues<Document>) {
-    const result = await this.instance.updateOne(filter, {
-      $set: data,
-    });
-    if (result.acknowledged && result.modifiedCount === 1) {
-      return true;
-    }
-    return false;
-  }
-
-  /**
    * 更新多条记录
    * @param {*} filter
    * @param {*} data
    */
-  async updates(filter: Filter<Document>, data: MatchKeysAndValues<Document>) {
-    const result = await this.instance.updateMany(filter, { $set: data });
+  public async update(
+    filter: Filter<Document>,
+    data: MatchKeysAndValues<Document>
+  ) {
+    const result = await this.col.updateMany(filter, { $set: data });
     if (result.acknowledged && result.modifiedCount > 0) {
       return true;
     }
@@ -228,8 +182,8 @@ export class MCol {
    * @param {*} data
    * @returns 成功则返回上次添加的_id
    */
-  async add(data: Document) {
-    const result = await this.instance.insertOne(data);
+  public async add(data: Document) {
+    const result = await this.col.insertOne(data);
     if (result.acknowledged) {
       return result.insertedId;
     }
@@ -240,7 +194,7 @@ export class MCol {
    * @param {*} data
    * @returns 成功则返回上次添加的_id列表
    */
-  async adds(
+  public async adds(
     data: (Document & {
       _id?: ObjectId | undefined;
     })[]
@@ -248,7 +202,7 @@ export class MCol {
     if (!Array.isArray(data)) {
       data = [data];
     }
-    const result = await this.instance.insertMany(data);
+    const result = await this.col.insertMany(data);
     if (result.acknowledged && result.insertedCount > 0) {
       return result.insertedIds;
     }
@@ -259,8 +213,8 @@ export class MCol {
    * @param {*} filter
    * @param {*} option
    */
-  async get(filter: Filter<Document>, option: FindOptions<Document>) {
-    return this.instance.findOne(filter, option);
+  public async get(filter: Filter<Document>, option: FindOptions<Document>) {
+    return this.col.findOne(filter, option);
   }
 
   /**
@@ -269,8 +223,8 @@ export class MCol {
    * @param {*} option
    * @returns
    */
-  async gets(filter: Filter<Document>, option: FindOptions<Document>) {
-    const cursor = await this.instance.find(filter, option);
+  public async gets(filter: Filter<Document>, option: FindOptions<Document>) {
+    const cursor = await this.col.find(filter, option);
     const hasNext = await cursor.hasNext();
     const output: Document[] = [];
     if (!hasNext) {
@@ -288,7 +242,7 @@ export class MCol {
    * @param {*} option
    * @returns
    */
-  async count(filter: Filter<Document>, option: FindOptions<Document>) {
-    return await this.instance.countDocuments(filter, option);
+  public async count(filter: Filter<Document>, option: FindOptions<Document>) {
+    return await this.col.countDocuments(filter, option);
   }
 }

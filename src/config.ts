@@ -9,35 +9,22 @@ export interface AppConfigData {
   defaultAction?: string;
   // koa-body的选项
   bodyOptions?: IKoaBodyOptions;
+  // 启动时触发
+  onAppStart?: () => Promise<void> | void;
 }
 
 export class AppConfig {
-  private data: Required<AppConfigData>;
+  public data: Required<AppConfigData>;
   private static instance?: AppConfig;
 
-  private constructor(data: AppConfigData) {
+  private constructor(config: AppConfigData) {
     let defaultData: Required<AppConfigData> = {
       port: 9000,
-      controllerRoot: data.controllerRoot,
       defaultAction: 'index',
       bodyOptions: { multipart: true },
+      onAppStart() {},
+      ...config,
     };
-
-    if (data.port) {
-      defaultData.port = data.port;
-    }
-
-    if (data.defaultAction) {
-      defaultData.defaultAction = data.defaultAction;
-    }
-
-    if (typeof data.bodyOptions === 'object') {
-      defaultData.bodyOptions = {
-        ...defaultData.bodyOptions,
-        ...data.bodyOptions,
-      };
-    }
-
     this.data = defaultData;
   }
 
