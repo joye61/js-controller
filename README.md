@@ -105,7 +105,7 @@ The directory structure is shown below.
   ┣━...
 ```
 
-# 额外封装
+# additional package
 
 Additional packaging can be used without, mainly to facilitate the development. Specific use can refer to the source code or examples, are very simple
 
