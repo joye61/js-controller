@@ -1,6 +1,6 @@
 # Web Services Rapid Development
 
-HTTP server side for small or personal projects in a `MVC-like` way. In fact, it is suitable for most of the daily projects, I have used it to develop a number of online stable projects, very simple. HTTP service based on [`Koa`](https://github.com/koajs/koa)
+HTTP server side development for small or personal projects in a `MVC-like` way. In fact, it is suitable for most of the daily projects, I have used it to develop a number of online stable projects, very simple. HTTP service based on [`Koa`](https://github.com/koajs/koa)
 
 # Installation
 
