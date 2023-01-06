@@ -21,9 +21,6 @@ export class SQLite implements Idb {
   // 上次插入数据库的ID
   public lastInsertId?: number;
 
-  // 上次执行的SQL语句
-  public lastSQL?: any[];
-
   private constructor(private dbpath: string) {
     this.db = new SQLiteConstructor(path.normalize(this.dbpath), {
       verbose(...args: any[]) {
