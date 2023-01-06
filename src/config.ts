@@ -1,6 +1,8 @@
 import type { IKoaBodyOptions } from 'koa-body';
 
 export interface AppConfigData {
+  // debug模式，只有测试环境且debug=true才会打印日志
+  debug?: boolean;
   // 监听端口
   port?: number | string;
   // 控制器根目录
@@ -19,6 +21,7 @@ export class AppConfig {
 
   private constructor(config: AppConfigData) {
     let defaultData: Required<AppConfigData> = {
+      debug: true,
       port: 9000,
       defaultAction: 'index',
       bodyOptions: { multipart: true },
@@ -34,9 +37,5 @@ export class AppConfig {
 
   public static getInstance() {
     return AppConfig.instance as AppConfig;
-  }
-
-  public item(name: keyof AppConfigData) {
-    return this.data[name];
   }
 }

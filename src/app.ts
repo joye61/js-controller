@@ -2,7 +2,9 @@ import koaBody from 'koa-body';
 import Server, { type Context } from 'koa';
 import readdirp, { ReaddirpOptions } from 'readdirp';
 import path from 'path';
+import fs from 'fs';
 import { AppConfig, AppConfigData } from './config';
+import { log } from './utils';
 
 export interface RouterData {
   class: new (c: Context) => any;
@@ -43,6 +45,10 @@ export class App {
    */
   private async detectAllRouter() {
     let scanDir = path.normalize(this.config.controllerRoot);
+    if (!fs.existsSync(scanDir)) {
+      throw new Error('Controller root directory does not exist');
+    }
+
     let filter: ReaddirpOptions = { fileFilter: ['*.js', '*.mjs'] };
     for await (const entry of readdirp(scanDir, filter)) {
       let pathname = entry.path
@@ -123,5 +129,6 @@ export class App {
     });
 
     server.listen(this.config.port);
+    log(`Application started and listening on port ${this.config.port}`);
   }
 }

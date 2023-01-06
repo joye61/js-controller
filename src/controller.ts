@@ -11,7 +11,7 @@ export class Controller {
    * @param code
    * @param message
    */
-  protected json(data: any = null, code = 0, message = '成功') {
+  protected json(data: any = null, code = 0, message = 'success') {
     this.context.status = 200;
     this.context.type = 'application/json';
     this.context.body = JSON.stringify({

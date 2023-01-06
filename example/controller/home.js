@@ -1,7 +1,11 @@
-exports.index = function (ctx) {
-  ctx.json("hello world home");
-};
+const { Controller } = require('../../dist/index');
 
-exports.test = function(){
-  ctx.json("test function goes");
+module.exports = class extends Controller {
+  show() {
+    this.json('hello world');
+  }
+
+  index() {
+    this.json('default action');
+  }
 }

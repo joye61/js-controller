@@ -1,6 +1,6 @@
-const { JSController } = require("../dist/index");
-const path = require("path");
+const { runApp } = require('../dist/index');
+const path = require('path');
 
-new JSController({
-  rootDir: path.resolve(__dirname, "./controller"),
+runApp({
+  controllerRoot: path.resolve(__dirname, './controller'),
 });

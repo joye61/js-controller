@@ -1,101 +1,72 @@
-# A simple controller scaffold
+# Web Services Rapid Development
 
-Simple controller scaffolding for small individual projects
+HTTP server side for small or personal projects in a `MVC-like` way. In fact, it is suitable for most of the daily projects, I have used it to develop a number of online stable projects, very simple. HTTP service based on [`Koa`](https://github.com/koajs/koa)
 
-
-Installation
+# Installation
 
 ```
 npm i js-controller
 ```
 
-Import
+# Usage
 
 ```js
 // Import Library
-import { runApp } from "js-controller";
-// Launch App
-runApp()
-// Or pass the configuration file directory at startup
-runApp("path/to/configRootDir")
+import { runApp } from 'js-controller';
+// Import configuration
+runApp({
+  controllerRoot: 'path/to/controller',
+});
 ```
 
-> For a complete example, please refer to the project under [test](./test) directory
-
-
-## Configuration file conventions
-
-- When starting the application, you can specify the configuration file root `runApp("path/to/configRoot")`, if not specified, the default is the `config` folder in the project root
-- Assuming the configuration file root directory is `config`, `config/main.js` must exist to represent the generic configuration file
-- Assuming that the configuration file root is `config`, `config/[process.env.NODE_ENV].js` must exist to represent the environment-related configuration file
-
-Assuming the configuration file root is `config`, then:
-
-```
-┣━config
-  ┣━main.js
-  ┣━production.js
-  ┣━development.js
-  ┣━...
-```
-
-## Configuration item conventions
-
-Scaffolding supports `mongodb` database by default and will automatically connect if the `mongodb` connection parameter is included in the configuration project
+`runApp` accepts an object of type `AppConfigData` to configure the application, all optional except for the `controllerRoot` parameter, which is mandatory
 
 ```ts
-// For mongodb databases
-interface MongodbConnectOption {
-  // Host name
-  host: string;
-  // Port number
-  port: string;
-  // The default database to connect to
-  database?: string;
-  // user name
-  user?: string;
-  // password
-  password?: string;
-  // Whether debugging is enabled or not
+interface AppConfigData {
+  // debug mode, default is true
+  // Only debug===true && process.env.NODE_ENV===development will print the log
   debug?: boolean;
-}
-
-interface ConfigOption {
-  // Listen to the local address
-  httpHost?: string;
-  // The port to listen on
-  httpPort?: number | string;
-  // If or not debugging is enabled, this mode will output errors and other information
-  debug: boolean;
-  // POST request body limit (bytes)
-  postBodyLimit?: number;
+  // Application Listening Port
+  port?: number | string;
   // Controller root directory
-  controllerRootDir: string;
-  // name of the hook that is triggered before the action is called
-  onBeforeActionHook?: string;
-  // The name of the hook that fires after the action is invoked
-  onAfterActionHook?: string;
-  // mongodb database linking option
-  mongodbConnectOption?: MongodbConnectOption;
+  controllerRoot: string;
+  // The default action is `index`
+  defaultAction?: string;
+  // Options for koa-body
+  bodyOptions?: IKoaBodyOptions;
+  // A function that is triggered when the application starts and is used to initialize some functions
+  onAppStart?: () => Promise<void> | void;
 }
 ```
 
-> The configuration item `controllerRootDir` is required and represents the root directory of the **controller files**
+> For a complete example, please refer to the project under [example](./example) directory
 
+# Controller Conventions
 
-## Routing rules
-
-```
-/path/to/[controller]/[action]
-```
+- The controller is a JavaScript file
+- The controller file must have a default class export
+- The instance methods of the controller class are agreed to be actions
+- The controller file name and the action together form the route, which is case-insensitive
+- Actions can have a default value, which is configured in the startup portal via `defaultAction` or, if not specified, `index`.
 
 For example: `/module/article/search`
 
 The last part of the path `search` will be treated as the action name, and the previous part `/module/article` will be treated as the path to the controller file, which will eventually resolve to
 
-- Controller file: `path/to/[controllerRootDir]/module/article.js`   
+- Controller file: `path/to/[controllerRootDir]/module/article.js`
 - Action name: `search`
 
+The corresponding controller file should look like the following, which can be found in the [example](. /example) directory for an example
+
+```js
+// ES module. Controller file: article.ts
+// Since routing is not case sensitive, the file names article.ts, Article.ts, arTicle.ts are fine
+export default class {
+  search() {
+    // TODO
+  }
+}
+```
 
 Controller filenames and action names are case-insensitive:
 
@@ -105,29 +76,54 @@ Controller filenames and action names are case-insensitive:
 /module/article/SeaRch  legal, actions are case insensitive
 ```
 
-## Controller Conventions
+If `search` is configured as the default action, then the routes `/module/article/search` and `/module/article` are equivalent
 
-The controller file corresponds to a module, this module must have a **default exported class**, `js-controller` will instantiate that class and then call the actions of that class as follows: 
+# Routing rules
 
-```js
-// Controller
-export default class Article {
-  search(){
-    // TODO
-  }
-}
+## `path/to/[controllerRoot]/controller/action`
+
+The corresponding route is `controller/action`
+
+## `path/to/[controllerRoot]/subdirectory/controller/action`
+
+The corresponding route is `subdirectory/controller/action`
+
+## `path/to/[controllerRoot]/subdirectory/.../controller/action`
+
+The corresponding route is `subdirectory/.../controller/action`, Subdirectories can have unlimited levels
+
+The directory structure is shown below.
+
+```
+┣━controllerRoot
+  ┣━controller1.js
+  ┣━controller2.js
+  ┣━subdirectory
+    ┣━controller1.js
+    ┣━controller2.js
+    ┣━...
+  ┣━...
 ```
 
-The corresponding path is `/path/to/article/search`
+# 额外封装
 
+Additional packaging can be used without, mainly to facilitate the development. Specific use can refer to the source code or examples, are very simple
+
+- `SQLite` operation class
+- `MongoDB` operation class
+- `Controller` base class
+- `Model` base class
+
+```ts
+// ES module
+import { Controller, Model, SQLite, MongoDB, Mdb, MCol } from 'js-controller';
+```
 
 # Development
 
-Clone the project, run it at the same time, you can open the development test, `test` directory for the test code
+Clone the project, run it at the same time
 
 ```
 npm run ts
 npm run dev
 ```
-
-

@@ -3,7 +3,7 @@ import { AppConfig, AppConfigData } from './config';
 
 export async function runApp(configData: AppConfigData) {
   AppConfig.create(configData);
-  App.getInstance().run();
+  await App.getInstance().run();
 }
 
 export { Controller } from './controller';

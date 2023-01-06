@@ -2,6 +2,7 @@ import path from 'path';
 import SQLiteConstructor, { type Database } from 'better-sqlite3';
 import { Table } from './table';
 import type { Idb } from './types';
+import { log } from './utils';
 
 export interface CachedDbs {
   [dbpath: string]: SQLite;
@@ -25,7 +26,9 @@ export class SQLite implements Idb {
 
   private constructor(private dbpath: string) {
     this.db = new SQLiteConstructor(path.normalize(this.dbpath), {
-      verbose: (...args: any[]) => (this.lastSQL = args),
+      verbose(...args: any[]) {
+        log(...args);
+      },
     });
   }
 
