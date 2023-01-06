@@ -116,6 +116,7 @@ export class App {
 
       // 走到这里说明找到了路由，设置默认状态码200
       ctx.status = 200;
+      ctx.body = '';
       // 先执行前置钩子
       let controller = new data.class(ctx);
       if (typeof controller.beforeAction === 'function') {
