@@ -80,15 +80,15 @@ If `search` is configured as the default action, then the routes `/module/articl
 
 # Routing rules
 
-## `path/to/[controllerRoot]/controller/action`
+**`path/to/[controllerRoot]/controller/action`**
 
 The corresponding route is `controller/action`
 
-## `path/to/[controllerRoot]/subdirectory/controller/action`
+**`path/to/[controllerRoot]/subdirectory/controller/action`**
 
 The corresponding route is `subdirectory/controller/action`
 
-## `path/to/[controllerRoot]/subdirectory/.../controller/action`
+**`path/to/[controllerRoot]/subdirectory/.../controller/action`**
 
 The corresponding route is `subdirectory/.../controller/action`, Subdirectories can have unlimited levels
 
