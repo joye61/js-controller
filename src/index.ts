@@ -10,3 +10,5 @@ export { Controller } from './controller';
 export { Model } from './model';
 export { MongoDB, Mdb, MCol } from './mongodb';
 export { SQLite } from './sqlite';
+
+export type { HookReturnValue } from './types';

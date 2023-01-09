@@ -4,3 +4,5 @@ export interface Idb {
   query<T = any>(prepareSql: string, holders: Array<string | number>): Array<T>;
 }
 
+export type HookReturnValue = 'abort' | 'continue';
+

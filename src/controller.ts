@@ -1,7 +1,5 @@
 import type { Context } from 'koa';
 
-export type HookReturnValue = 'abort' | 'continue';
-
 export class Controller {
   protected constructor(protected context: Context) {}
 
@@ -60,17 +58,5 @@ export class Controller {
    */
   protected method(): string {
     return this.context.method.toUpperCase();
-  }
-
-  /**
-   * 强制POST请求
-   * @returns
-   */
-  protected forcePost(): HookReturnValue {
-    if (this.context.method !== 'POST') {
-      this.context.status = 404;
-      return 'abort';
-    }
-    return 'continue';
   }
 }
