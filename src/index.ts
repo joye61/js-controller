@@ -8,7 +8,8 @@ export async function runApp(configData: AppConfigData) {
 
 export { Controller } from './controller';
 export { Model } from './model';
-export { MongoDB, Mdb, MCol } from './mongodb';
+export { MongoDB, Mdb, MCol, type MongoDBConfig } from './mongodb';
 export { SQLite } from './sqlite';
+export { Table } from './table';
 
-export type { HookReturnValue } from './types';
+export type { HookReturnValue, Idb } from './types';
