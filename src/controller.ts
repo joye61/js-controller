@@ -1,22 +1,27 @@
 import type { Context } from 'koa';
 
+export interface JSONData {
+  code: number;
+  data: any;
+  message: string;
+}
+
 export class Controller {
   protected constructor(protected context: Context) {}
 
   /**
    * 输出JSON
-   * @param data
-   * @param code
-   * @param message
+   *
    */
-  protected json(data: any = null, code = 0, message = 'success') {
+  protected set json(data: JSONData) {
     this.context.status = 200;
     this.context.type = 'application/json';
-    this.context.body = JSON.stringify({
-      data,
-      code,
-      message,
-    });
+    const defaultData: JSONData = {
+      data: null,
+      code: 0,
+      message: 'success',
+    };
+    this.context.body = JSON.stringify({ ...defaultData, ...data });
   }
 
   /**

@@ -19,23 +19,24 @@ runApp({
 });
 ```
 
-`runApp` accepts an object of type `AppConfigData` to configure the application, all optional except for the `controllerRoot` parameter, which is mandatory
+`runApp` accepts an object of type `AppConfig` to configure the application, all optional except for the `controllerRoot` parameter, which is mandatory
 
 ```ts
-interface AppConfigData {
-  // debug mode, default is true
-  // Only debug===true && process.env.NODE_ENV===development will print the log
-  debug?: boolean;
-  // Application Listening Port
+interface AppConfig {
+  // X-Forwarded-Host is supported when proxy is true, default is true
+  proxy?: boolean;
+  // Application Listening Port, default is 9000
   port?: number | string;
   // Controller root directory
   controllerRoot: string;
   // The default action is `index`
   defaultAction?: string;
+  // action prefix hook name, default is 'beforeAction'
+  beforeAction?: string;
   // Options for koa-body
   bodyOptions?: IKoaBodyOptions;
   // A function that is triggered when the application starts and is used to initialize some functions
-  onAppStart?: () => Promise<void> | void;
+  onStart?: () => Promise<void> | void;
 }
 ```
 
@@ -105,19 +106,6 @@ The directory structure is shown below.
   ┣━...
 ```
 
-# Additional package
-
-Additional packaging can be used without, mainly to facilitate the development. Specific use can refer to the source code or examples, are very simple
-
-- `SQLite` operation class
-- `MongoDB` operation class
-- `Controller` base class
-- `Model` base class
-
-```ts
-// ES module
-import { Controller, Model, SQLite, MongoDB, Mdb, MCol } from 'js-controller';
-```
 
 # Development
 
