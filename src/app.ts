@@ -2,7 +2,6 @@ import koaBody, { type IKoaBodyOptions } from 'koa-body';
 import Server, { type Context } from 'koa';
 import readdirp, { ReaddirpOptions } from 'readdirp';
 import path from 'path';
-import fs from 'fs';
 
 export interface RouterData {
   class: new (c: Context) => any;
@@ -56,11 +55,10 @@ export class App {
    * 检测所有的路由逻辑
    */
   private async detectAllRouter() {
-    const scanDir = path.normalize(this.config.controllerRoot);
-    if (!fs.existsSync(scanDir)) {
+    if (!this.config.controllerRoot) {
       throw new Error('Controller root directory does not exist');
     }
-
+    const scanDir = path.normalize(this.config.controllerRoot);
     const filter: ReaddirpOptions = { fileFilter: ['*.js', '*.mjs', '*.cjs'] };
     for await (const entry of readdirp(scanDir, filter)) {
       const pathname = entry.path
@@ -116,6 +114,7 @@ export class App {
 
     // 找到对应的动作并解析
     server.use(async (ctx: Context) => {
+
       const pathname = ctx.path
         .replace(/^\/*|\/*$/g, '')
         .trim()
@@ -129,7 +128,7 @@ export class App {
       // 走到这里说明找到了路由，设置默认状态码200
       ctx.status = 200;
       ctx.body = '';
-      
+
       // 先执行前置钩子
       const controller = new data.class(ctx);
       const beforeAction = this.config.beforeAction!;

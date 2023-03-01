@@ -1,16 +1,15 @@
 {
   "name": "js-controller",
-  "version": "0.1.5",
+  "version": "0.1.6",
   "description": "Use controllers to handle http requests",
   "main": "./dist/index.js",
   "exports": {
     ".": "./dist/index.js"
   },
-  "type": "module",
+  "type": "commonjs",
   "types": "./dist/index.d.ts",
   "scripts": {
     "ts": "tsc -w --pretty",
-    "dev": "nodemon --config ./nodemon.json ./example/index.js",
     "build": "rm -rfv ./dist && tsc --pretty",
     "pub": "npm run build && npm publish"
   },
@@ -42,7 +41,6 @@
   "devDependencies": {
     "@types/koa": "^2.13.5",
     "@types/node": "^18.11.18",
-    "nodemon": "^2.0.20",
     "typescript": "^4.9.4"
   }
 }

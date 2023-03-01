@@ -1,6 +1,8 @@
-const { runApp } = require('../dist/index');
+const { App } = require('../dist/index');
 const path = require('path');
 
-runApp({
-  controllerRoot: path.resolve(__dirname, './controller'),
-});
+(async () => {
+  await new App({
+    controllerRoot: path.resolve(__dirname, './controller'),
+  }).run();
+})();

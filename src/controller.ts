@@ -10,18 +10,19 @@ export class Controller {
   protected constructor(protected context: Context) {}
 
   /**
-   * 输出JSON
-   *
+   * 输出JSON格式数据
+   * @param data
+   * @param code
+   * @param message
    */
-  protected set json(data: JSONData) {
+  protected json(data: any = null, code = 0, message = 'success') {
     this.context.status = 200;
     this.context.type = 'application/json';
-    const defaultData: JSONData = {
-      data: null,
-      code: 0,
-      message: 'success',
-    };
-    this.context.body = JSON.stringify({ ...defaultData, ...data });
+    this.context.body = JSON.stringify({
+      data,
+      code,
+      message,
+    });
   }
 
   /**
