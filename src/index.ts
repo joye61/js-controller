@@ -1,2 +1,2 @@
-export { App } from './app';
-export { Controller } from './controller';
+export { App } from './app.js';
+export { Controller } from './controller.js';

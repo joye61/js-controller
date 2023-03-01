@@ -1,8 +1,8 @@
-const { App } = require('../dist/index');
-const path = require('path');
+import { App } from '../dist/index.js';
+import path from 'path';
+import { fileURLToPath } from 'url';
 
-(async () => {
-  await new App({
-    controllerRoot: path.resolve(__dirname, './controller'),
-  }).run();
-})();
+
+new App({
+  controllerRoot: path.resolve(path.dirname(fileURLToPath(import.meta.url)), './controller'),
+}).run();
