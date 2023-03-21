@@ -1,8 +1,6 @@
-import { App } from '../dist/index.js';
-import path from 'path';
-import { fileURLToPath } from 'url';
-
+const { App } = require('../dist');
+const path = require('path');
 
 new App({
-  controllerRoot: path.resolve(path.dirname(fileURLToPath(import.meta.url)), './controller'),
+  controllerRoot: path.resolve(__dirname, './controller'),
 }).run();

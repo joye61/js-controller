@@ -1,6 +1,7 @@
-import { Controller } from '../../dist/index.js';
+const { ObjectId } = require('bson');
+const { Controller, MClient, MCol } = require('../../dist');
 
-export default class extends Controller {
+module.exports = class extends Controller {
   show() {
     this.json();
   }
@@ -22,4 +23,27 @@ export default class extends Controller {
     console.log(result);
     this.json(result);
   }
-}
+
+  async mt() {
+    const client = await MClient.create();
+    const db = client.db('joye');
+    const col = new MCol('test', db);
+    for (let i = 0; i < 100; i++) {
+      await col.add({
+        name: 'joye' + i,
+        age: 36 + i,
+        gender: 1,
+        title: '技术总监',
+      });
+    }
+  }
+
+  async mt1() {
+    const client = await MClient.create();
+    const db = client.db('joye');
+    const col = new MCol('test', db);
+    await col.gets({$text: {
+      $search: '周'
+    }});
+  }
+};

@@ -1,6 +1,6 @@
-import { Controller } from '../../../dist/index.js';
+const { Controller } = require('../../../dist');
 
-export default class extends Controller {
+module.exports = class extends Controller {
   show() {
     this.json('hello world');
   }
@@ -8,4 +8,4 @@ export default class extends Controller {
   index() {
     this.json('default action');
   }
-}
+};
