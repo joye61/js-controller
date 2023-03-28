@@ -77,7 +77,7 @@ export class MCol {
    * @param filter
    * @returns boolean
    */
-  async remove(filter: Filter<Document>) {
+  async remove(filter: Filter<Document>): Promise<boolean> {
     const result = await this.instance.deleteMany(filter);
     return result.acknowledged;
   }
@@ -91,7 +91,7 @@ export class MCol {
   async update(
     filter: Filter<Document> = {},
     data: MatchKeysAndValues<Document> = {}
-  ) {
+  ): Promise<boolean> {
     const result = await this.instance.updateMany(filter, { $set: data });
     return result.acknowledged && result.modifiedCount > 0;
   }
@@ -105,7 +105,7 @@ export class MCol {
   async count(
     filter: Filter<Document> = {},
     option: FindOptions<Document> = {}
-  ) {
+  ): Promise<number> {
     return this.instance.countDocuments(filter, option);
   }
 
@@ -117,7 +117,7 @@ export class MCol {
   async upsert(
     filter: Filter<Document> = {},
     data: MatchKeysAndValues<Document> = {}
-  ) {
+  ): Promise<boolean> {
     const result = await this.instance.updateOne(
       filter,
       { $set: data },
@@ -136,7 +136,7 @@ export class MCol {
    * @param {*} data
    * @returns 成功则返回上次添加的_id
    */
-  async add(data: Document) {
+  async add(data: Document): Promise<boolean> {
     const result = await this.instance.insertOne(data);
     if (result.acknowledged) {
       this.lastInsertedId = result.insertedId;
@@ -150,7 +150,7 @@ export class MCol {
    * @param {*} data
    * @returns 成功则返回上次添加的_id列表
    */
-  async adds(data: Document[]) {
+  async adds(data: Document[]): Promise<boolean> {
     if (!Array.isArray(data)) {
       data = [data];
     }
