@@ -210,29 +210,3 @@ export class MCol {
     return cursor.toArray();
   }
 }
-
-export class MTool {
-  /**
-   * 转换为对象id
-   * @param id
-   * @returns
-   */
-  static toObjectId(id: string | ObjectId) {
-    if (id instanceof ObjectId) {
-      return id;
-    }
-    return new ObjectId(id);
-  }
-
-  /**
-   * 转换为字符串id
-   * @param id
-   * @returns
-   */
-  static toStringId(id: string | ObjectId) {
-    if (id instanceof ObjectId) {
-      return id.toHexString();
-    }
-    return id;
-  }
-}

@@ -1,4 +1,3 @@
-const { ObjectId } = require('bson');
 const { Controller, MClient, MCol } = require('../../dist');
 
 module.exports = class extends Controller {
