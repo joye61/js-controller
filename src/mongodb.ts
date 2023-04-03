@@ -93,7 +93,7 @@ export class MCol {
     data: MatchKeysAndValues<Document> = {}
   ): Promise<boolean> {
     const result = await this.instance.updateMany(filter, { $set: data });
-    return result.acknowledged && result.modifiedCount > 0;
+    return result.acknowledged;
   }
 
   /**
@@ -125,10 +125,7 @@ export class MCol {
         upsert: true,
       }
     );
-    return (
-      result.acknowledged &&
-      (result.modifiedCount === 1 || result.upsertedCount === 1)
-    );
+    return result.acknowledged;
   }
 
   /**
