@@ -1,6 +1,6 @@
 {
   "name": "js-controller",
-  "version": "0.2.3",
+  "version": "0.2.4",
   "description": "Use controllers to handle http requests",
   "main": "./dist/index.js",
   "exports": {
@@ -37,6 +37,7 @@
     "koa": "^2.14.1",
     "koa-body": "^5.0.0",
     "mongodb": "^5.1.0",
+    "mysql2": "^3.2.4",
     "readdirp": "^3.6.0"
   },
   "devDependencies": {

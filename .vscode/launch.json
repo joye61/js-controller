@@ -10,7 +10,10 @@
       "name": "启动程序",
       "skipFiles": ["<node_internals>/**"],
       "program": "${workspaceFolder}/example/index.js",
-      "outFiles": ["${workspaceFolder}/**/*.js"]
+      "outFiles": ["${workspaceFolder}/**/*.js"],
+      "env": {
+        "NODE_ENV": "development"
+      }
     }
   ]
 }

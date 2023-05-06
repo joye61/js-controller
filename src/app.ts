@@ -149,7 +149,7 @@ export class App {
     // 开发环境打印启动信息
     if (process.env.NODE_ENV === 'development') {
       console.log(
-        `Application started and listening on port ${this.config.port}`
+        `Application started and listening on port :${this.config.port}`
       );
     }
   }

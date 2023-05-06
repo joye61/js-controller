@@ -1,0 +1,116 @@
+import { Table } from './table';
+import { Pool, createPool } from 'mysql2/promise';
+
+export interface PoolOption {
+  // 连接池数量限制
+  limit: number;
+  // 连接主机
+  host: string;
+  // 连接端口
+  port: number;
+  // 用户名
+  user: string;
+  // 密码
+  password: string;
+  // 默认连接字符集
+  charset: string;
+  // 连接数据库
+  database: string;
+}
+
+export class MySQL {
+  // 缓存所有的连接池
+  private static instances: Record<string, MySQL> = {};
+
+  /**
+   * 创建缓存的键，方便用于比较
+   * @param option
+   * @returns
+   */
+  public static createCachekey(option: Partial<PoolOption>) {
+    const pairs: string[] = [];
+    for (let key in option) {
+      pairs.push(`${key}=${option[key as keyof PoolOption]}`);
+    }
+    return pairs.sort().join('&');
+  }
+
+  /**
+   * 构造函数，私有单例，只能通过getInstance创建
+   * @param pool
+   */
+  private constructor(public pool: Pool) {}
+
+  /**
+   * 获取一个连接池实例
+   * @param option
+   * @returns
+   */
+  public static getInstance(option?: Partial<PoolOption>): MySQL {
+    let config: Partial<PoolOption> = {
+      limit: 10,
+      host: '127.0.0.1',
+      port: 3306,
+      user: 'root',
+      charset: 'utf8mb4',
+    };
+    if (option && typeof option === 'object') {
+      config = {
+        ...config,
+        ...option,
+      };
+    }
+    const cacheKey = MySQL.createCachekey(config);
+    if (cacheKey in MySQL.instances) {
+      return MySQL.instances[cacheKey];
+    }
+
+    const pool = createPool({
+      host: config.host,
+      port: config.port,
+      user: config.user,
+      password: config.password,
+      charset: config.charset,
+      database: config.database,
+      connectionLimit: config.limit,
+      waitForConnections: true,
+    });
+
+    const instance = new MySQL(pool);
+    MySQL.instances[cacheKey] = instance;
+
+    return instance;
+  }
+
+  /**
+   * 创建一个新的表实例
+   * @param name
+   * @returns
+   */
+  public table(name: string) {
+    return new Table(name, this);
+  }
+
+  /**
+   * 执行查询语句
+   * @param sql
+   * @param values
+   * @returns 数组
+   */
+  public async query<T = any>(sql: string, values?: any[]): Promise<Array<T>> {
+    const result = await this.pool.query({ sql, values });
+    return result[0] as Array<T>;
+  }
+
+  /**
+   * 执行增删改
+   * @param sql
+   * @param values
+   * @returns
+   */
+  public async exec(sql: string, values?: any[]): Promise<boolean> {
+    const result = await this.pool.execute({ sql, values });
+    console.log(result);
+    return true;
+  }
+}
