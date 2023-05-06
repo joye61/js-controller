@@ -1,5 +1,5 @@
-import { Table } from './table';
-import { Pool, createPool } from 'mysql2/promise';
+import { Table } from "./table";
+import { Pool, createPool } from "mysql2/promise";
 
 export interface PoolOption {
   // 连接池数量限制
@@ -32,7 +32,7 @@ export class MySQL {
     for (let key in option) {
       pairs.push(`${key}=${option[key as keyof PoolOption]}`);
     }
-    return pairs.sort().join('&');
+    return pairs.sort().join("&");
   }
 
   /**
@@ -49,12 +49,12 @@ export class MySQL {
   public static getInstance(option?: Partial<PoolOption>): MySQL {
     let config: Partial<PoolOption> = {
       limit: 10,
-      host: '127.0.0.1',
+      host: "127.0.0.1",
       port: 3306,
-      user: 'root',
-      charset: 'utf8mb4',
+      user: "root",
+      charset: "utf8mb4",
     };
-    if (option && typeof option === 'object') {
+    if (option && typeof option === "object") {
       config = {
         ...config,
         ...option,
@@ -89,28 +89,5 @@ export class MySQL {
    */
   public table(name: string) {
     return new Table(name, this);
-  }
-
-  /**
-   * 执行查询语句
-   * @param sql
-   * @param values
-   * @returns 数组
-   */
-  public async query<T = any>(sql: string, values?: any[]): Promise<Array<T>> {
-    const result = await this.pool.query({ sql, values });
-    return result[0] as Array<T>;
-  }
-
-  /**
-   * 执行增删改
-   * @param sql
-   * @param values
-   * @returns
-   */
-  public async exec(sql: string, values?: any[]): Promise<boolean> {
-    const result = await this.pool.execute({ sql, values });
-    console.log(result);
-    return true;
   }
 }

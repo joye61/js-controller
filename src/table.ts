@@ -1,12 +1,49 @@
-import type { Idb } from './idb';
+import { Pool } from "mysql2/promise";
 
 export type ValueHolders = {
   prepare: string;
   holders: Array<string | number>;
 };
 
+export interface DBWithPool {
+  pool: Pool;
+}
+
 export class Table {
-  constructor(public name: string, public db: Idb) {}
+  /**
+   * 记录上次插入的记录ID
+   */
+  public lastInsertedId?: number = undefined;
+
+  /**
+   * 构造函数
+   * @param name 
+   * @param db 
+   */
+  constructor(public name: string, public db: DBWithPool) {}
+
+  /**
+   * 执行查询语句
+   * @param sql
+   * @param values
+   * @returns 数组
+   */
+  public async query<T = any>(sql: string, values?: any[]): Promise<Array<T>> {
+    const result = await this.db.pool.query({ sql, values });
+    return result[0] as Array<T>;
+  }
+
+  /**
+   * 执行增删改
+   * @param sql
+   * @param values
+   * @returns
+   */
+  public async exec(sql: string, values?: any[]): Promise<boolean> {
+    const result = await this.db.pool.execute({ sql, values });
+    console.log(result);
+    return true;
+  }
 
   /**
    * 创建排序字段
@@ -14,19 +51,19 @@ export class Table {
    * @returns
    */
   public createOrder(
-    order?: Record<string, Uppercase<'ASC' | 'DESC'>> | null
+    order?: Record<string, Uppercase<"ASC" | "DESC">> | null
   ): string {
     if (!order) {
-      return '';
+      return "";
     }
     let parts: Array<string> = [];
     for (let key in order) {
       let type = order[key].toUpperCase();
-      if (['ASC', 'DESC'].includes(type)) {
+      if (["ASC", "DESC"].includes(type)) {
         parts.push(`\`${key}\` ${type}`);
       }
     }
-    return parts.join(', ');
+    return parts.join(", ");
   }
 
   /**
@@ -41,7 +78,7 @@ export class Table {
     const found = key.match(pattern);
 
     // 定义返回值
-    let prepare = '';
+    let prepare = "";
     let holders: Array<string | number> = [];
 
     // 如果结果不匹配，直接返回
@@ -58,27 +95,27 @@ export class Table {
       return { prepare, holders };
     }
     // 操作符存在，转换维大写
-    op = op.trim().replace(/\s+/, ' ').toUpperCase();
+    op = op.trim().replace(/\s+/, " ").toUpperCase();
 
     // IN | NOT IN
-    if (op === 'IN' || op === 'NOT IN') {
+    if (op === "IN" || op === "NOT IN") {
       prepare = `\`${field}\` ${op} `;
       let createInPair = (list: Array<string | number>) => {
         let places: string[] = [];
         let holders: Array<string | number> = [];
         for (let item of list) {
-          places.push('?');
+          places.push("?");
           holders.push(item);
         }
         return {
-          prepare: places.join(', '),
+          prepare: places.join(", "),
           holders,
         };
       };
       let list: Array<string | number> | undefined = undefined;
-      if (typeof value === 'string') {
-        value = value.replace(/\s*\,\s*/g, ',');
-        list = value.split(',');
+      if (typeof value === "string") {
+        value = value.replace(/\s*\,\s*/g, ",");
+        list = value.split(",");
       } else if (Array.isArray(value)) {
         list = value;
       }
@@ -88,14 +125,14 @@ export class Table {
         prepare += `(${result.prepare})`;
         holders.push(...result.holders);
       } else {
-        prepare = '';
+        prepare = "";
       }
 
       return { prepare, holders };
     }
 
     // BETWEEN | NOT BETWEEN
-    if (op === 'BETWEEN' || op === 'NOT BETWEEN') {
+    if (op === "BETWEEN" || op === "NOT BETWEEN") {
       if (Array.isArray(value) && value.length === 2) {
         prepare = `\`${field}\` ${op} ? AND ?`;
         holders = value;
@@ -117,7 +154,7 @@ export class Table {
    */
   public createDataFilter(key: string, value: any): ValueHolders {
     // 定义返回值
-    let prepare = '';
+    let prepare = "";
     let holders: Array<any> = [];
     const found = key.match(/^\s*(.+?)\s*([\+\-\*\/]=)?\s*$/);
     if (!found) {
@@ -147,20 +184,20 @@ export class Table {
     let prepares: Array<string> = [];
     let holders: Array<string | number> = [];
     if (!where) {
-      return { prepare: '', holders };
+      return { prepare: "", holders };
     }
 
     for (let key in where) {
       let value = where[key];
       let tmpHolders = this.createFilter(key, value);
-      if (tmpHolders.prepare === '') {
+      if (tmpHolders.prepare === "") {
         continue;
       }
       prepares.push(tmpHolders.prepare);
       holders.push(...tmpHolders.holders);
     }
     return {
-      prepare: prepares.join(' AND '),
+      prepare: prepares.join(" AND "),
       holders,
     };
   }
@@ -174,8 +211,8 @@ export class Table {
    */
   public async get<T = any>(
     where?: Record<string, any> | null,
-    order?: Record<string, Uppercase<'ASC' | 'DESC'>> | null,
-    field = '*'
+    order?: Record<string, Uppercase<"ASC" | "DESC">> | null,
+    field = "*"
   ): Promise<T | null> {
     let result = await this.gets<T>(where, order, 0, 1, field);
     return result.length > 0 ? result[0] : null;
@@ -195,7 +232,7 @@ export class Table {
     order?: Record<string, any> | null,
     offset = 0,
     limit = 0,
-    field = '*'
+    field = "*"
   ): Promise<Array<T>> {
     let sql = `SELECT ${field} FROM \`${this.name}\``;
     let whereResult = this.createWhere(where);
@@ -210,7 +247,7 @@ export class Table {
       sql += ` LIMIT ${offset}, ${limit}`;
     }
 
-    return this.db.query<T>(sql, whereResult.holders);
+    return this.query<T>(sql, whereResult.holders);
   }
 
   /**
@@ -224,14 +261,14 @@ export class Table {
     let holders: Array<string | number> = [];
     for (let key in data) {
       fields.push(`\`${key}\``);
-      places.push('?');
+      places.push("?");
       holders.push(data[key]);
     }
 
     let sql = `INSERT INTO \`${this.name}\` (${fields.join(
-      ', '
-    )}) VALUES (${places.join(', ')})`;
-    return this.db.exec(sql, holders);
+      ", "
+    )}) VALUES (${places.join(", ")})`;
+    return this.exec(sql, holders);
   }
 
   /**
@@ -245,7 +282,7 @@ export class Table {
     if (whereResult.prepare) {
       sql += ` WHERE ${whereResult.prepare}`;
     }
-    return this.db.exec(sql, whereResult.holders);
+    return this.exec(sql, whereResult.holders);
   }
 
   /**
@@ -259,7 +296,7 @@ export class Table {
     if (whereResult.prepare) {
       sql += ` WHERE ${whereResult.prepare}`;
     }
-    let result: Array<{ total_num: number }> = await this.db.query(
+    let result: Array<{ total_num: number }> = await this.query(
       sql,
       whereResult.holders
     );
@@ -293,7 +330,7 @@ export class Table {
     if (parts.length === 0) {
       return false;
     }
-    sql += ` ${parts.join(', ')}`;
+    sql += ` ${parts.join(", ")}`;
 
     let whereResult = this.createWhere(where);
     if (whereResult.prepare) {
@@ -301,6 +338,6 @@ export class Table {
       holders.push(...whereResult.holders);
     }
 
-    return this.db.exec(sql, holders);
+    return this.exec(sql, holders);
   }
 }
