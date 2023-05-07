@@ -9,7 +9,7 @@
   "type": "commonjs",
   "types": "./dist/index.d.ts",
   "scripts": {
-    "ts": "tsc -w --pretty",
+    "dev": "tsc -w --pretty",
     "build": "rm -rfv ./dist && tsc --pretty",
     "pub": "npm run build && npm publish"
   },

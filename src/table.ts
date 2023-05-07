@@ -1,4 +1,4 @@
-import { Pool } from "mysql2/promise";
+import { Pool, ResultSetHeader } from "mysql2/promise";
 
 export type ValueHolders = {
   prepare: string;
@@ -17,33 +17,10 @@ export class Table {
 
   /**
    * 构造函数
-   * @param name 
-   * @param db 
+   * @param name
+   * @param db
    */
   constructor(public name: string, public db: DBWithPool) {}
-
-  /**
-   * 执行查询语句
-   * @param sql
-   * @param values
-   * @returns 数组
-   */
-  public async query<T = any>(sql: string, values?: any[]): Promise<Array<T>> {
-    const result = await this.db.pool.query({ sql, values });
-    return result[0] as Array<T>;
-  }
-
-  /**
-   * 执行增删改
-   * @param sql
-   * @param values
-   * @returns
-   */
-  public async exec(sql: string, values?: any[]): Promise<boolean> {
-    const result = await this.db.pool.execute({ sql, values });
-    console.log(result);
-    return true;
-  }
 
   /**
    * 创建排序字段
@@ -247,7 +224,8 @@ export class Table {
       sql += ` LIMIT ${offset}, ${limit}`;
     }
 
-    return this.query<T>(sql, whereResult.holders);
+    const result = await this.db.pool.query(sql, whereResult.holders);
+    return result[0] as Array<T>;
   }
 
   /**
@@ -268,21 +246,46 @@ export class Table {
     let sql = `INSERT INTO \`${this.name}\` (${fields.join(
       ", "
     )}) VALUES (${places.join(", ")})`;
-    return this.exec(sql, holders);
+    const result = await this.db.pool.execute(sql, holders);
+    const header = result[0] as ResultSetHeader;
+    if (header.affectedRows !== 1) {
+      return false;
+    }
+    if (header.insertId > 0) {
+      this.lastInsertedId = header.insertId;
+    }
+
+    return true;
   }
 
   /**
    * 删除记录
    * @param where
+   * @param order
+   * @param limit
    * @returns
    */
-  public async remove(where?: Record<string, any>): Promise<boolean> {
+  public async remove(
+    where?: Record<string, any> | null,
+    order?: Record<string, any> | null,
+    limit = 0
+  ): Promise<boolean> {
     let sql = `DELETE FROM \`${this.name}\``;
     let whereResult = this.createWhere(where);
     if (whereResult.prepare) {
       sql += ` WHERE ${whereResult.prepare}`;
     }
-    return this.exec(sql, whereResult.holders);
+    let orderStat = this.createOrder(order);
+    if (orderStat) {
+      sql += ` ORDER BY ${orderStat}`;
+    }
+    if (limit > 0) {
+      sql += ` LIMIT ${limit}`;
+    }
+
+    const result = await this.db.pool.execute(sql, whereResult.holders);
+    const header = result[0] as ResultSetHeader;
+    return header.affectedRows > 0;
   }
 
   /**
@@ -296,25 +299,24 @@ export class Table {
     if (whereResult.prepare) {
       sql += ` WHERE ${whereResult.prepare}`;
     }
-    let result: Array<{ total_num: number }> = await this.query(
-      sql,
-      whereResult.holders
-    );
-    if (result.length === 0) {
-      return 0;
-    } else {
-      return result[0].total_num;
-    }
+    let result = await this.db.pool.query(sql, whereResult.holders);
+    const list = <Array<any>>result[0];
+    return list.length === 0 ? 0 : list[0].total_num;
   }
 
   /**
    * 更新数据
-   * @param where
    * @param data
+   * @param where
+   * @param order
+   * @param limit
+   * @returns
    */
   public async update(
     data: Record<string, any>,
-    where?: Record<string, any> | null
+    where?: Record<string, any> | null,
+    order?: Record<string, any> | null,
+    limit = 0
   ): Promise<boolean> {
     let parts: string[] = [];
     let holders: Array<string | number> = [];
@@ -338,6 +340,16 @@ export class Table {
       holders.push(...whereResult.holders);
     }
 
-    return this.exec(sql, holders);
+    let orderStat = this.createOrder(order);
+    if (orderStat) {
+      sql += ` ORDER BY ${orderStat}`;
+    }
+    if (limit > 0) {
+      sql += ` LIMIT ${limit}`;
+    }
+
+    const result = await this.db.pool.execute(sql, holders);
+    const header = result[0] as ResultSetHeader;
+    return header.affectedRows > 0;
   }
 }
