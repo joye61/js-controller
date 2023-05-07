@@ -259,6 +259,25 @@ export class Table {
   }
 
   /**
+   * 如果条件存在则更新，如果不存在则添加
+   * @param data
+   * @param where
+   */
+  public async upsert(
+    data: Record<string, any>,
+    where?: Record<string, any> | null
+  ): Promise<boolean> {
+    if (!where) {
+      return this.add(data);
+    }
+    const result = await this.get(where);
+    if (!result) {
+      return this.add(data);
+    }
+    return this.update(data, where);
+  }
+
+  /**
    * 删除记录
    * @param where
    * @param order
