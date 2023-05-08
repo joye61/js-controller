@@ -1,4 +1,4 @@
-import { Table } from "./table";
+import { Table } from "./Table";
 import { Pool, createPool } from "mysql2/promise";
 
 export interface PoolOption {
