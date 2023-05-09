@@ -4,7 +4,7 @@ import readdirp, { ReaddirpOptions } from 'readdirp';
 import path from 'path';
 
 export interface RouterData {
-  class: new (c: Context) => any;
+  class: new (ctx: Context) => any;
   actionName: string;
 }
 
@@ -114,7 +114,6 @@ export class App {
 
     // 找到对应的动作并解析
     server.use(async (ctx: Context) => {
-
       const pathname = ctx.path
         .replace(/^\/*|\/*$/g, '')
         .trim()
@@ -146,11 +145,9 @@ export class App {
 
     server.listen(this.config.port);
 
-    // 开发环境打印启动信息
-    if (process.env.NODE_ENV === 'development') {
-      console.log(
-        `Application started and listening on port :${this.config.port}`
-      );
-    }
+    // 打印启动信息
+    console.log(
+      `Application started and listening on port :${this.config.port}`
+    );
   }
 }
