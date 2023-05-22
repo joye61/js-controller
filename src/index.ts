@@ -1,4 +1,5 @@
 export { App } from './App';
 export { Controller } from './Controller';
-export { MClient, MCol } from './mongodb';
+export { MongoDB } from './mongodbs';
+export { Collection } from './Collection';
 export { MySQL } from './MySQL';
