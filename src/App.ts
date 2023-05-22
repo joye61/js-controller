@@ -1,6 +1,6 @@
 import koaBody, { type IKoaBodyOptions } from 'koa-body';
-import Server, { type Context } from 'koa';
-import readdirp, { ReaddirpOptions } from 'readdirp';
+import Server, { type Context, type Middleware } from 'koa';
+import readdirp, { type ReaddirpOptions } from 'readdirp';
 import path from 'path';
 
 export interface RouterData {
@@ -27,6 +27,8 @@ export interface AppConfig {
   bodyOptions?: IKoaBodyOptions;
   // 启动时触发
   onStart?: () => Promise<void> | void;
+  // 自定义中间件
+  middlewares?: Middleware[];
 }
 
 export class App {
@@ -111,6 +113,14 @@ export class App {
 
     // 启用body解析
     server.use(koaBody(this.config.bodyOptions));
+
+    // 如果有其他自定义中间件，则启用
+    const middlewares = this.config.middlewares;
+    if (Array.isArray(middlewares) && middlewares.length > 0) {
+      for (const middleware of middlewares) {
+        server.use(middleware);
+      }
+    }
 
     // 找到对应的动作并解析
     server.use(async (ctx: Context) => {
