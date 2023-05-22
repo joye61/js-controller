@@ -37,6 +37,8 @@ interface AppConfig {
   bodyOptions?: IKoaBodyOptions;
   // A function that is triggered when the application starts and is used to initialize some functions
   onStart?: () => Promise<void> | void;
+  // custom middlewares for koa
+  middlewares?: Middleware[];
 }
 ```
 

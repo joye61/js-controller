@@ -68,12 +68,27 @@ export class App {
         .replace(/\\/, '/')
         .toLowerCase();
 
-      const module = await import(entry.fullPath);
-      // 默认控制器类不存在，跳过
-      if (!module.default) {
+      // 导入控制器文件
+      let Class = require(entry.fullPath);
+
+      // 如果导出的是一个对象，则认为是非默认导出
+      // 非默认导出取第一个遇到的类为控制器类
+      if (typeof Class === 'object') {
+        const keys = Object.keys(Class);
+        for (let key of keys) {
+          if (typeof Class[key] === 'function') {
+            Class = Class[key];
+            break;
+          }
+        }
+      }
+
+      // 如果到这里，仍然无法检测出Class是个控制器类，则退出后续逻辑
+      if (typeof Class !== 'function') {
         continue;
       }
-      const actions = Reflect.ownKeys(module.default.prototype);
+
+      const actions = Reflect.ownKeys(Class.prototype);
       for (const actionName of actions) {
         // 控制器方法不能作为action，符号类型不能作为action
         if (
@@ -84,7 +99,7 @@ export class App {
           continue;
         }
         const routerData: RouterData = {
-          class: module.default,
+          class: Class,
           actionName,
         };
         const actionUri = actionName.toLowerCase();
