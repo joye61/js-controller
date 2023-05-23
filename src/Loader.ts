@@ -12,6 +12,11 @@ export class Loader {
   private basePath: string[] = [];
 
   /**
+   * 缓存已经加载并计算的类，防止重复计算
+   */
+  private cachedClass: Record<string, FunctionConstructor | undefined> = {};
+
+  /**
    * 构造函数
    * @param basePath
    */
@@ -30,9 +35,16 @@ export class Loader {
    * @returns
    */
   public resolve<T>(classPath: string, ...params: any[]): T | undefined {
+    // 如果已经缓存过欲加载的类，不重复计算
+    const cache = this.cachedClass[classPath];
+    if (cache) {
+      return new cache(...params) as T;
+    }
+
     const Class = require(classPath);
     // 导出函数，则是默认导出，导出一个类
     if (typeof Class === 'function') {
+      this.cachedClass[classPath] = Class;
       return new Class(...params) as T;
     }
     // 非默认导出，则导出一个对象
@@ -40,6 +52,7 @@ export class Loader {
       const keys = Object.keys(Class);
       for (let key of keys) {
         if (typeof Class[key] === 'function') {
+          this.cachedClass[classPath] = Class[key];
           return new Class[key](...params) as T;
         }
       }
