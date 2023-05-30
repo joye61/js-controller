@@ -63,7 +63,7 @@ export class App {
     for await (const entry of readdirp(scanDir, filter)) {
       const pathname = entry.path
         .replace(/\.js$/i, '')
-        .replace(/\\/, '/')
+        .replace(/\\/g, '/')
         .toLowerCase();
 
       const module = await import(entry.fullPath);
