@@ -1,4 +1,4 @@
-import { Table } from "./table";
+import { Table } from "./Table";
 import { Pool, createPool } from "mysql2/promise";
 
 export interface PoolOption {
@@ -21,19 +21,6 @@ export interface PoolOption {
 export class MySQL {
   // 缓存所有的连接池
   private static instances: Record<string, MySQL> = {};
-
-  /**
-   * 创建缓存的键，方便用于比较
-   * @param option
-   * @returns
-   */
-  public static createCachekey(option: Partial<PoolOption>) {
-    const pairs: string[] = [];
-    for (let key in option) {
-      pairs.push(`${key}=${option[key as keyof PoolOption]}`);
-    }
-    return pairs.sort().join("&");
-  }
 
   /**
    * 构造函数，私有单例，只能通过getInstance创建
@@ -60,7 +47,7 @@ export class MySQL {
         ...option,
       };
     }
-    const cacheKey = MySQL.createCachekey(config);
+    const cacheKey = JSON.stringify(config);
     if (cacheKey in MySQL.instances) {
       return MySQL.instances[cacheKey];
     }

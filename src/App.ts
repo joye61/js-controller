@@ -1,10 +1,10 @@
 import koaBody, { type IKoaBodyOptions } from 'koa-body';
-import Server, { type Context } from 'koa';
-import readdirp, { ReaddirpOptions } from 'readdirp';
+import Server, { type Context, type Middleware } from 'koa';
+import readdirp, { type ReaddirpOptions } from 'readdirp';
 import path from 'path';
 
 export interface RouterData {
-  class: new (c: Context) => any;
+  class: new (ctx: Context) => any;
   actionName: string;
 }
 
@@ -27,6 +27,8 @@ export interface AppConfig {
   bodyOptions?: IKoaBodyOptions;
   // 启动时触发
   onStart?: () => Promise<void> | void;
+  // 自定义中间件
+  middlewares?: Middleware[];
 }
 
 export class App {
@@ -66,12 +68,27 @@ export class App {
         .replace(/\\/g, '/')
         .toLowerCase();
 
-      const module = await import(entry.fullPath);
-      // 默认控制器类不存在，跳过
-      if (!module.default) {
+      // 导入控制器文件
+      let Class = require(entry.fullPath);
+
+      // 如果导出的是一个对象，则认为是非默认导出
+      // 非默认导出取第一个遇到的类为控制器类
+      if (typeof Class === 'object') {
+        const keys = Object.keys(Class);
+        for (let key of keys) {
+          if (typeof Class[key] === 'function') {
+            Class = Class[key];
+            break;
+          }
+        }
+      }
+
+      // 如果到这里，仍然无法检测出Class是个控制器类，则退出后续逻辑
+      if (typeof Class !== 'function') {
         continue;
       }
-      const actions = Reflect.ownKeys(module.default.prototype);
+
+      const actions = Reflect.ownKeys(Class.prototype);
       for (const actionName of actions) {
         // 控制器方法不能作为action，符号类型不能作为action
         if (
@@ -82,7 +99,7 @@ export class App {
           continue;
         }
         const routerData: RouterData = {
-          class: module.default,
+          class: Class,
           actionName,
         };
         const actionUri = actionName.toLowerCase();
@@ -112,9 +129,16 @@ export class App {
     // 启用body解析
     server.use(koaBody(this.config.bodyOptions));
 
+    // 如果有其他自定义中间件，则启用
+    const middlewares = this.config.middlewares;
+    if (Array.isArray(middlewares) && middlewares.length > 0) {
+      for (const middleware of middlewares) {
+        server.use(middleware);
+      }
+    }
+
     // 找到对应的动作并解析
     server.use(async (ctx: Context) => {
-
       const pathname = ctx.path
         .replace(/^\/*|\/*$/g, '')
         .trim()
@@ -146,11 +170,9 @@ export class App {
 
     server.listen(this.config.port);
 
-    // 开发环境打印启动信息
-    if (process.env.NODE_ENV === 'development') {
-      console.log(
-        `Application started and listening on port :${this.config.port}`
-      );
-    }
+    // 打印启动信息
+    console.log(
+      `Application started and listening on port :${this.config.port}`
+    );
   }
 }

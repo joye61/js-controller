@@ -1,7 +1,6 @@
 import {
   Db,
-  MongoClient,
-  Collection,
+  Collection as MCol,
   Document,
   Filter,
   MatchKeysAndValues,
@@ -11,52 +10,11 @@ import {
 } from 'mongodb';
 
 /**
- * MongoDB客户端实例
- */
-export class MClient {
-  // 缓存所有的客户端连接实例
-  private static clients: Record<string, MongoClient> = {};
-
-  /**
-   * 创建一个新的mongodb客户端并连接
-   * 格式：mongodb://[username:password@]host1[:port1][,...hostN[:portN]][/[defaultauthdb][?options]]
-   * @param uri 默认 mongodb://127.0.0.1:27017
-   */
-  public static async create(uri = 'mongodb://127.0.0.1:27017') {
-    let client = MClient.clients[uri];
-    if (client && client instanceof MongoClient) {
-      return client;
-    }
-
-    client = new MongoClient(uri, {
-      keepAlive: true,
-      noDelay: true,
-    });
-    client.once('serverClosed', () => {
-      delete MClient.clients[uri];
-    });
-    await client.connect();
-
-    MClient.clients[uri] = client;
-    return client;
-  }
-
-  /**
-   * 取数据库
-   * @param name
-   * @returns
-   */
-  public db(name: string): Db {
-    return this.db(name);
-  }
-}
-
-/**
  * Col实例类用于简单的操作集合
  */
-export class MCol {
+export class Collection {
   // 原始的Collection实例
-  public instance: Collection;
+  public instance: MCol;
 
   // 上次插入的ID
   public lastInsertedId?: ObjectId;

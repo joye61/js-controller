@@ -7,6 +7,7 @@ export interface JSONData {
 }
 
 export class Controller {
+  // 基类控制器默认暴露KOA的context对象
   protected constructor(protected context: Context) {}
 
   /**
