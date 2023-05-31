@@ -75,7 +75,7 @@ export class SQLParser {
       if (typeof value === 'string') {
         value = value.replace(/\s*\,\s*/g, ',');
         list = value.split(',');
-      } else if (Array.isArray(value)) {
+      } else if (Array.isArray(value) && value.length > 0) {
         list = value;
       }
 
