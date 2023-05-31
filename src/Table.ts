@@ -1,8 +1,9 @@
 import { Pool, ResultSetHeader } from 'mysql2/promise';
 import { SQLParser } from './SQLParser';
 
-export interface DBWithPool {
+export interface DB {
   pool: Pool;
+  debug: boolean;
 }
 
 export class Table extends SQLParser {
@@ -16,8 +17,18 @@ export class Table extends SQLParser {
    * @param name
    * @param db
    */
-  constructor(public name: string, public db: DBWithPool) {
+  constructor(public name: string, public db: DB) {
     super();
+  }
+
+  /**
+   * 打印调试信息
+   * @param params
+   */
+  #debug(...params: any[]) {
+    if (this.db.debug) {
+      console.log(`[MySQL DEBUG]:`, ...params);
+    }
   }
 
   /**
@@ -65,8 +76,14 @@ export class Table extends SQLParser {
       sql += ` LIMIT ${offset}, ${limit}`;
     }
 
-    const result = await this.db.pool.query(sql, whereResult.holders);
-    return result[0] as Array<T>;
+    try {
+      this.#debug(this.db.pool.format(sql, whereResult.holders));
+      const result = await this.db.pool.query(sql, whereResult.holders);
+      return result[0] as Array<T>;
+    } catch (error) {
+      console.error(error);
+      return [];
+    }
   }
 
   /**
@@ -87,16 +104,22 @@ export class Table extends SQLParser {
     let sql = `INSERT INTO \`${this.name}\` (${fields.join(
       ', '
     )}) VALUES (${places.join(', ')})`;
-    const result = await this.db.pool.execute(sql, holders);
-    const header = result[0] as ResultSetHeader;
-    if (header.affectedRows !== 1) {
+
+    try {
+      this.#debug(this.db.pool.format(sql, holders));
+      const result = await this.db.pool.execute(sql, holders);
+      const header = result[0] as ResultSetHeader;
+      if (header.affectedRows !== 1) {
+        return false;
+      }
+      if (header.insertId > 0) {
+        this.lastInsertedId = header.insertId;
+      }
+      return true;
+    } catch (error) {
+      console.error(error);
       return false;
     }
-    if (header.insertId > 0) {
-      this.lastInsertedId = header.insertId;
-    }
-
-    return true;
   }
 
   /**
@@ -124,9 +147,15 @@ export class Table extends SQLParser {
       sql += ` LIMIT ${limit}`;
     }
 
-    const result = await this.db.pool.execute(sql, whereResult.holders);
-    const header = result[0] as ResultSetHeader;
-    return header.affectedRows > 0;
+    try {
+      // 对于删除逻辑，只要不报错，都认为成功
+      this.#debug(this.db.pool.format(sql, whereResult.holders));
+      await this.db.pool.execute(sql, whereResult.holders);
+      return true;
+    } catch (error) {
+      console.error(error);
+      return false;
+    }
   }
 
   /**
@@ -140,9 +169,17 @@ export class Table extends SQLParser {
     if (whereResult.prepare) {
       sql += ` WHERE ${whereResult.prepare}`;
     }
-    let result = await this.db.pool.query(sql, whereResult.holders);
-    const list = <Array<any>>result[0];
-    return list.length === 0 ? 0 : list[0].total_num;
+
+    try {
+      this.#debug(this.db.pool.format(sql, whereResult.holders));
+      let result = await this.db.pool.query(sql, whereResult.holders);
+      const list = <Array<any>>result[0];
+      return list.length === 0 ? 0 : list[0].total_num;
+    } catch (error) {
+      console.error(error);
+      // 取数量，如果报错，返回0
+      return 0;
+    }
   }
 
   /**
@@ -189,9 +226,15 @@ export class Table extends SQLParser {
       sql += ` LIMIT ${limit}`;
     }
 
-    const result = await this.db.pool.execute(sql, holders);
-    const header = result[0] as ResultSetHeader;
-    return header.affectedRows > 0;
+    try {
+      // 对于更新逻辑，只要不报错，都认为成功
+      this.#debug(this.db.pool.format(sql, holders));
+      await this.db.pool.execute(sql, holders);
+      return true;
+    } catch (error) {
+      console.error(error);
+      return false;
+    }
   }
 
   /**

@@ -1,5 +1,5 @@
-import { Table } from "./Table";
-import { Pool, createPool } from "mysql2/promise";
+import { Table } from './Table';
+import { Pool, createPool } from 'mysql2/promise';
 
 export interface PoolOption {
   // 连接池数量限制
@@ -16,6 +16,8 @@ export interface PoolOption {
   charset: string;
   // 连接数据库
   database: string;
+  // 是否开启调试，会打印SQL语句
+  debug: boolean;
 }
 
 export class MySQL {
@@ -24,9 +26,10 @@ export class MySQL {
 
   /**
    * 构造函数，私有单例，只能通过getInstance创建
-   * @param pool
+   * @param pool 
+   * @param debug 
    */
-  private constructor(public pool: Pool) {}
+  private constructor(public pool: Pool, public debug: boolean = false) {}
 
   /**
    * 获取一个连接池实例
@@ -36,12 +39,13 @@ export class MySQL {
   public static getInstance(option?: Partial<PoolOption>): MySQL {
     let config: Partial<PoolOption> = {
       limit: 10,
-      host: "127.0.0.1",
+      host: '127.0.0.1',
       port: 3306,
-      user: "root",
-      charset: "utf8mb4",
+      user: 'root',
+      charset: 'utf8mb4',
+      debug: false,
     };
-    if (option && typeof option === "object") {
+    if (option && typeof option === 'object') {
       config = {
         ...config,
         ...option,
@@ -63,7 +67,7 @@ export class MySQL {
       waitForConnections: true,
     });
 
-    const instance = new MySQL(pool);
+    const instance = new MySQL(pool, config.debug);
     MySQL.instances[cacheKey] = instance;
 
     return instance;
