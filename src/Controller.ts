@@ -32,7 +32,10 @@ export class Controller {
    * @param value
    * @returns
    */
-  protected get(name: string, value?: string): any {
+  protected get(name?: string, value?: string): any {
+    if (!name) {
+      return this.context.query;
+    }
     return <string | undefined>this.context.query[name] ?? value;
   }
 
@@ -42,7 +45,10 @@ export class Controller {
    * @param value
    * @returns
    */
-  protected post(name: string, value?: any): any {
+  protected post(name?: string, value?: any): any {
+    if (!name) {
+      return this.context.body;
+    }
     return this.context.request.body[name] ?? value;
   }
 
@@ -52,7 +58,10 @@ export class Controller {
    * @param value
    * @returns
    */
-  protected param(name: string, value?: any): any {
+  protected param(name?: string, value?: any): any {
+    if (!name) {
+      return { ...this.get(), ...this.post() };
+    }
     let result = this.get(name, value);
     if (result) return result;
     result = this.post(name, value);
