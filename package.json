@@ -1,6 +1,6 @@
 {
   "name": "js-controller",
-  "version": "0.3.5",
+  "version": "0.3.6",
   "description": "Use controllers to handle http requests",
   "main": "./dist/index.js",
   "exports": {

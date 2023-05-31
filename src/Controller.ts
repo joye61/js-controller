@@ -47,7 +47,7 @@ export class Controller {
    */
   protected post(name?: string, value?: any): any {
     if (!name) {
-      return this.context.body;
+      return this.context.request.body;
     }
     return this.context.request.body[name] ?? value;
   }
@@ -60,7 +60,7 @@ export class Controller {
    */
   protected param(name?: string, value?: any): any {
     if (!name) {
-      return { ...this.get(), ...this.post() };
+      return { ...this.post(), ...this.get() };
     }
     let result = this.get(name, value);
     if (result) return result;
